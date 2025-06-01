@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EnderTools</title>
+<link rel="stylesheet" href="styles.min.css" />
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link type="text/css" rel="stylesheet" href="css/style.css"/>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+
+<header class="bg-gray-800 p-4 shadow-md flex justify-between items-center fixed w-full z-50 top-0">
+  <h1 class="text-2xl font-bold text-yellow-300 flex items-center">
+    <i class="fas fa-tools ml-2"></i>EnderTools
+  </h1>
+  <nav class="space-x-4 text-gray-300">
+    <a href="#home" class="hover:underline">الرئيسية</a>
+    <a href="#why-us" class="hover:underline">لماذا نحن؟</a>
+    <a href="#server-rental" class="hover:underline">تأجير سيرفرات</a>
+    <a href="#name-generator" class="hover:underline">توليد أسماء</a>
+    <a href="#chat" class="hover:underline">شات</a>
+    <a href="#faq" class="hover:underline">الأسئلة الشائعة</a>
+  </nav>
+</header>
+
+<div class="pt-16"></div>
+
+<main class="flex-1 p-8 max-w-7xl mx-auto w-full">
+
+<section id="home" class="mb-16 text-center">
+  <h2 class="text-4xl font-bold mb-4 text-yellow-300 animate-fade-in">مرحباً في EnderTools</h2>
+  <p class="text-xl mb-6 text-gray-100 animate-fade-in-delay-1">
+    منصة متكاملة لعشاق ماين كرافت: <span class="text-yellow-300 font-semibold">تأجير سيرفرات Bedrock</span>، <span class="text-yellow-300 font-semibold">توليد أسماء فريدة</span>، <span class="text-yellow-300 font-semibold">دردشة مجتمعية</span> وغيرها الكثير!
+  </p>
+  
+  <div class="mt-10 p-6 bg-yellow-100 rounded-lg shadow-lg relative overflow-hidden transform transition duration-500 hover:scale-105">
+    <h3 class="text-2xl font-semibold mb-2 text-gray-800 flex items-center justify-center">
+      <i class="fas fa-gift text-orange-500 mr-2"></i> عرض ترويجي خاص!
+    </h3>
+    <p class="mb-4 text-gray-700 text-lg">
+      احصل على خصم <span class="font-bold text-orange-600">20%</span> عند تأجير سيرفرك الجديد الآن! لا تفوت الفرصة! 🤑
+    </p>
+    <a
+      href="https://discord.gg/UcrVgJvr"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="inline-block mt-4 px-6 py-3 bg-orange-500 text-white rounded-full hover:bg-orange-600 transition duration-300 shadow-lg"
+    >
+      <i class="fab fa-discord ml-2"></i> تعرف على العرض الآن
+    </a>
+  </div>
+</section>
+
+<section id="why-us" class="mb-16 p-8 bg-gray-800 rounded-lg shadow-xl">
+  <h2 class="text-3xl font-bold mb-8 text-yellow-300 text-center">لماذا تختار EnderTools؟</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="text-center p-4 bg-gray-700 rounded-lg shadow-md transform transition duration-300 hover:scale-105">
+      <i class="fas fa-server text-green-400 text-5xl mb-4"></i>
+      <h3 class="text-xl font-semibold text-white mb-2">سيرفرات Bedrock موثوقة</h3>
+      <p class="text-gray-300">نقدم سيرفرات عالية الأداء ومستقرة لتجربة لعب سلسة بلا تقطيع.</p>
+    </div>
+    <div class="text-center p-4 bg-gray-700 rounded-lg shadow-md transform transition duration-300 hover:scale-105">
+      <i class="fas fa-fingerprint text-blue-400 text-5xl mb-4"></i>
+      <h3 class="text-xl font-semibold text-white mb-2">أسماء شخصيات فريدة</h3>
+      <p class="text-gray-300">مولد أسماء متقدم يوفر لك أسماء مبتكرة لم تُرَ من قبل.</p>
+    </div>
+    <div class="text-center p-4 bg-gray-700 rounded-lg shadow-md transform transition duration-300 hover:scale-105">
+      <i class="fas fa-users text-purple-400 text-5xl mb-4"></i>
+      <h3 class="text-xl font-semibold text-white mb-2">مجتمع متفاعل</h3>
+      <p class="text-gray-300">انضم إلى شات الدردشة وتفاعل مع لاعبين آخرين من مجتمع ماين كرافت.</p>
+    </div>
+  </div>
+</section>
+
+<section id="server-rental" class="mb-16 p-8 bg-gray-800 rounded-lg shadow-xl">
+  <h2 class="text-3xl font-bold mb-8 text-yellow-300 text-center">باقات سيرفرات Bedrock</h2>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="bg-gray-700 p-6 rounded-lg shadow-lg text-center transform hover:scale-105 transition duration-300 border-2 border-transparent hover:border-yellow-500">
+      <i class="fas fa-hourglass-start text-yellow-400 text-4xl mb-3"></i>
+      <h3 class="text-2xl font-bold text-yellow-400 mb-4">باقة اليوم الواحد</h3>
+      <p class="text-gray-100 mb-2">نوع السيرفر: <span class="font-semibold">Bedrock</span></p>
+      <p class="text-gray-100 mb-2">المدة: <span class="font-semibold">يوم واحد</span></p>
+      <p class="text-gray-100 mb-2">السعر: <span class="font-semibold">50 ألف كريدت</span></p>
+      <p class="text-lg text-gray-400 mt-4">مناسبة للاختبارات السريعة والمغامرات العابرة!</p>
+      <a href="https://discord.gg/UcrVgJvr" target="_blank" rel="noopener noreferrer"
+         class="inline-block mt-4 px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-300 shadow-md">
+        <i class="fab fa-discord ml-2"></i> احصل عليها
+      </a>
+    </div>
+
+    <div class="bg-gray-700 p-6 rounded-lg shadow-lg text-center transform hover:scale-105 transition duration-300 border-2 border-yellow-500">
+      <i class="fas fa-hourglass-half text-yellow-400 text-4xl mb-3"></i>
+      <h3 class="text-2xl font-bold text-yellow-400 mb-4">باقة اليومين</h3>
+      <p class="text-gray-100 mb-2">نوع السيرفر: <span class="font-semibold">Bedrock</span></p>
+      <p class="text-gray-100 mb-2">المدة: <span class="font-semibold">يومان</span></p>
+      <p class="text-gray-100 mb-2">ال100 ألف كريدت</span></p>
+      <p class="text-lg text-gray-400 mt-4">مثالية للمشاريع القصيرة مع أصدقائك!</p>
+      <a href="https://discord.gg/UcrVgJvr" target="_blank" rel="noopener noreferrer"
+         class="inline-block mt-4 px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-300 shadow-md">
+        <i class="fab fa-discord ml-2"></i> اخترها الآن
+      </a>
+    </div>
+
+    <div class="bg-gray-700 p-6 rounded-lg shadow-lg text-center transform hover:scale-105 transition duration-300 border-2 border-transparent hover:border-yellow-500">
+      <i class="fas fa-hourglass-end text-yellow-400 text-4xl mb-3"></i>
+      <h3 class="text-2xl font-bold text-yellow-400 mb-4">باقة الأسبوع</h3>
+      <p class="text-gray-100 mb-2">نوع السيرفر: <span class="font-semibold">Bedrock</span></p>
+      <p class="text-gray-100 mb-2">المدة: <span class="font-semibold">أسبوع كامل</span></p>
+      <p class="text-gray-100 mb-2">السعر: <span class="font-semibold">1 مليون كريدت</span></p>
+      <p class="text-lg text-gray-400 mt-4">تجربة كاملة وممتعة دون انقطاع!</p>
+      <a href="https://discord.gg/UcrVgJvr" target="_blank" rel="noopener noreferrer"
+         class="inline-block mt-4 px-6 py-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition duration-300 shadow-md">
+        <i class="fab fa-discord ml-2"></i> احجزها
+      </a>
+    </div>
+  </div>
+  <p class="mb-4 mt-8 text-gray-100 text-center text-lg">اضغط على زر "احصل عليها" الخاص بالباقة المطلوبة للتواصل معنا عبر الديسكورد وحجز سيرفرك الخاص بك!</p>
+  
+  <div class="mt-12 p-6 bg-gray-700 rounded-lg shadow-md text-center">
+    <h3 class="text-xl font-semibold mb-4 text-gray-200">قيم هذه الخدمة</h3>
+    <div class="flex items-center justify-center space-x-2 cursor-pointer">
+      <i class="fas fa-star fa-lg text-yellow-400"></i>
+      <i class="fas fa-star fa-lg text-yellow-400"></i>
+      <i class="fas fa-star fa-lg text-yellow-400"></i>
+      <i class="fas fa-star fa-lg text-yellow-400"></i>
+      <i class="fas fa-star fa-lg text-gray-400"></i>
+      <span class="mr-2 text-gray-300 text-lg">4 من 5 (بناءً على تقييماتكم)</span>
+    </div>
+  </div>
+</section>
+
+<section id="name-generator" class="mb-16 p-8 bg-gray-800 rounded-lg shadow-xl">
+  <h2 class="text-3xl font-bold mb-6 text-yellow-300 text-center">مولد أسماء شخصيات ماين كرافت الفريدة</h2>
+  <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+    <div>
+      <label for="name-type-select" class="block text-gray-300 text-sm font-semibold mb-2">نوع الشخصية:</label>
+      <select id="name-type-select" class="w-full bg-gray-700 text-white px-4 py-2 rounded-md focus:ring-2 focus:ring-yellow-400 outline-none transition">
+        <option value="any">أي نوع</option>
+        <option value="warrior">محارب</option>
+        <option value="mage">ساحر</option>
+        <option value="archer">قوس</option>
+        <option value="builder">باني</option>
+        <option value="stealth">متخفي</option>
+      </select>
+    </div>
+    <div class="flex items-center space-x-2">
+      <input type="checkbox" id="add-numbers" class="form-checkbox h-5 w-5 text-yellow-400 rounded focus:ring-2 focus:ring-yellow-400 bg-gray-600 border-gray-500">
+      <label for="add-numbers" class="text-gray-300">أضف أرقام</label>
+    </div>
+    <div class="flex items-center space-x-2">
+      <input type="checkbox" id="add-symbols" class="form-checkbox h-5 w-5 text-yellow-400 rounded focus:ring-2 focus:ring-yellow-400 bg-gray-600 border-gray-500">
+      <label for="add-symbols" class="text-gray-300">أضف رموز</label>
+    </div>
+  </div>
+
+  <div class="flex flex-col sm:flex-row items-center justify-center bg-gray-700 p-4 rounded-lg mb-6 text-center text-xl font-mono relative">
+    <span id="name-box" class="flex-1 text-white select-text cursor-text">اضغط توليد لإنشاء اسم!</span>
+    <button onclick="copyGeneratedName()" class="mt-4 sm:mt-0 sm:ml-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 transition duration-200 text-sm flex items-center justify-center">
+      <i class="far fa-copy mr-2"></i> نسخ
+    </button>
+  </div>
+  <div class="text-center">
+    <button
+      class="px-8 py-3 bg-blue-600 rounded-full hover:bg-blue-700 transition duration-200 text-white shadow-lg"
+      onclick="generateName()"
+    >
+      <i class="fas fa-magic mr-2"></i> توليد اسم جديد
+    </button>
+  </div>
+</section>
+
+<section id="chat" class="mb-16 p-8 bg-gray-800 rounded-lg shadow-xl">
+  <h2 class="text-3xl font-bold mb-6 text-yellow-300 text-center">شات دردشة EnderTools</h2>
+  <div
+    class="flex-1 overflow-y-auto bg-gray-700 p-4 rounded mb-6 custom-scrollbar"
+    style="min-height: 350px; max-height: 500px;"
+    id="chat-messages"
+  >
+    <p class="text-gray-400 text-center my-4">مرحباً بك في شات EnderTools! تفاعل مع مجتمع اللاعبين هنا.</p>
+  </div>
+  <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+    <input
+      type="text"
+      placeholder="اسم المستخدم (اختياري)..."
+      class="w-full sm:w-1/4 px-4 py-3 rounded bg-gray-700 text-white outline-none focus:ring-2 focus:ring-yellow-400 transition"
+      id="username-input"
+      maxlength="15"
+    />
+    <input
+      type="text"
+      placeholder="اكتب رسالتك هنا..."
+      class="flex-1 px-4 py-3 rounded bg-gray-700 text-white outline-none focus:ring-2 focus:ring-yellow-400 transition"
+      id="chat-input"
+    />
+    <button
+      class="px-6 py-3 bg-green-600 rounded-full hover:bg-green-700 transition duration-200 text-white shadow-md"
+      onclick="sendMessage()"
+    >
+      <i class="fas fa-paper-plane mr-2"></i> إرسال
+    </button>
+  </div>
+</section>
+
+<section id="faq" class="mb-16 p-8 bg-gray-800 rounded-lg shadow-xl">
+  <h2 class="text-3xl font-bold mb-8 text-yellow-300 text-center">الأسئلة الشائعة</h2>
+  <div id="faq-accordion">
+    <div class="mb-4 bg-gray-700 rounded-lg shadow-md overflow-hidden">
+      <button class="flex justify-between items-center w-full p-4 text-white text-lg font-semibold hover:bg-gray-600 focus:outline-none focus:bg-gray-600 transition duration-300" onclick="toggleAccordion(this)">
+        <span>كيف يمكنني تأجير سيرفر Minecraft Bedrock؟</span>
+        <i class="fas fa-chevron-down transform transition-transform duration-300"></i>
+      </button>
+      <div class="accordion-content p-4 text-gray-300 border-t border-gray-600 hidden">
+        <p>يمكنك تأجير سيرفر بالضغط على زر "احصل عليها" بجانب الباقة التي تناسبك في قسم "تأجير السيرفرات". سيتم توجيهك إلى سيرفر الديسكورد الخاص بنا لإتمام عملية الحجز والدفع بالكريدت.</p>
+      </div>
+    </div>
+    <div class="mb-4 bg-gray-700 rounded-lg shadow-md overflow-hidden">
+      <button class="flex justify-between items-center w-full p-4 text-white text-lg font-semibold hover:bg-gray-600 focus:outline-none focus:bg-gray-600 transition duration-300" onclick="toggleAccordion(this)">
+        <span>ما هي "الكريدت" وكيف يمكنني الحصول عليها؟</span>
+        <i class="fas fa-chevron-down transform transition-transform duration-300"></i>
+      </button>
+      <div class="accordion-content p-4 text-gray-300 border-t border-gray-600 hidden">
+        <p>"الكريدت" هي العملة الافتراضية المستخدمة على موقع EnderTools لحجز السيرفرات. يمكنك الحصول عليها عن طريق المشاركة في فعالياتنا على الديسكورد، أو شراءها مباشرة من خلال فريق الدعم لدينا.</p>
+      </div>
+    </div>
+    <div class="mb-4 bg-gray-700 rounded-lg shadow-md overflow-hidden">
+      <button class="flex justify-between items-center w-full p-4 text-white text-lg font-semibold hover:bg-gray-600 focus:outline-none focus:bg-gray-600 transition duration-300" onclick="toggleAccordion(this)">
+        <span>هل مولد الأسماء يدعم جميع أنواع الشخصيات؟</span>
+        <i class="fas fa-chevron-down transform transition-transform duration-300"></i>
+      </button>
+      <div class="accordion-content p-4 text-gray-300 border-t border-gray-600 hidden">
+        <p>نعم، مولد الأسماء يدعم توليد أسماء لمجموعة متنوعة من الشخصيات مثل المحاربين، السحرة، الرماة، البنائين، والشخصيات المتخفية. يمكنك اختيار النوع الذي يناسبك للحصول على أسماء أكثر دقة.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="bg-gray-800 p-6 text-center text-gray-400 shadow-inner">
+  <div class="flex justify-center space-x-6 mb-4">
+    <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200"><i class="fab fa-facebook-f text-xl"></i></a>
+    <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200"><i class="fab fa-twitter text-xl"></i></a>
+    <a href="https://discord.gg/UcrVgJvr" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors duration-200"><i class="fab fa-discord text-xl"></i></a>
+    <a href="#" class="text-gray-400 hover:text-white transition-colors duration-200"><i class="fab fa-youtube text-xl"></i></a>
+  </div>
+  <p>&copy; 2025 EnderTools. جميع الحقوق محفوظة.</p>
+  <p class="text-sm mt-2">تصميم وتطوير بواسطة مجتمع EnderTools.</p>
+</footer>
+
+<button id="back-to-top" class="fixed bottom-8 right-8 bg-yellow-500 text-gray-900 p-3 rounded-full shadow-lg transition-all duration-300 opacity-0 transform translate-y-4 hover:bg-yellow-400" onclick="scrollToTop()">
+  <i class="fas fa-arrow-up text-xl"></i>
+</button>
+
+<div id="toast-container" class="fixed bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 z-50"></div>
+
+<script>
+  // دالة الإشعارات (Toast Notifications)
+  function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `p-4 rounded-lg shadow-lg text-white text-center opacity-0 transition-all duration-300 transform translate-y-4`;
+
+    let bgColor = 'bg-green-500';
+    if (type === 'error') {
+      bgColor = 'bg-red-500';
+    } else if (type === 'info') {
+      bgColor = 'bg-blue-500';
+    } else if (type === 'warning') {
+      bgColor = 'bg-orange-500';
+    }
+
+    toast.classList.add(bgColor);
+    toast.innerHTML = `<i class="fas fa-check-circle mr-2"></i> ${message}`; // يمكن تغيير الأيقونة حسب النوع
+
+    toastContainer.appendChild(toast);
+
+    // Fade in
+    setTimeout(() => {
+      toast.classList.remove('opacity-0', 'translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+    }, 100);
+
+    // Fade out and remove
+    setTimeout(() => {
+      toast.classList.remove('opacity-100', 'translate-y-0');
+      toast.classList.add('opacity-0', 'translate-y-4');
+      toast.addEventListener('transitionend', () => toast.remove());
+    }, 3000); // يختفي بعد 3 ثوانٍ
+  }
+
+  // توليد اسم عشوائي كمثال
+  function generateName() {
+    const adjectives = ['Dark', 'Silent', 'Speedy', 'Mystic', 'Fierce', 'Ancient', 'Crimson', 'Azure', 'Iron', 'Golden', 'Shadow', 'Whispering', 'Blazing', 'Frost', 'Lunar', 'Solar', 'Void', 'Ember', 'Jade', 'Crystal'];
+    const nouns = ['Knight', 'Dragon', 'Shadow', 'Wizard', 'Ranger', 'Blade', 'Viper', 'Phoenix', 'Titan', 'Spectre', 'Guardian', 'Sentinel', 'Nomad', 'Hunter', 'Wanderer', 'Stalker', 'Golem', 'Spirit', 'Marauder', 'Reaper'];
+    const numbers = '0123456789';
+    const symbols = '!@#$%^&*()_+';
+
+    const nameType = document.getElementById('name-type-select').value;
+    const addNumbers = document.getElementById('add-numbers').checked;
+    const addSymbols = document.getElementById('add-symbols').checked;
+
+    let selectedAdjectives = adjectives;
+    let selectedNouns = nouns;
+
+    // تصفية الكلمات حسب النوع
+    if (nameType === 'warrior') {
+      selectedAdjectives = ['Iron', 'Blazing', 'Fierce', 'Valiant', 'Battle-Hardened'];
+      selectedNouns = ['Knight', 'Titan', 'Warrior', 'Berserker', 'Champion'];
+    } else if (nameType === 'mage') {
+      selectedAdjectives = ['Mystic', 'Ancient', 'Arcane', 'Whispering', 'Eldritch'];
+      selectedNouns = ['Wizard', 'Enchanter', 'Sorcerer', 'Warlock', 'Conjurer'];
+    } else if (nameType === 'archer') {
+      selectedAdjectives = ['Speedy', 'Swift', 'Hawkeye', 'Sharp', 'Precise'];
+      selectedNouns = ['Archer', 'Ranger', 'Hunter', 'Marksman', 'Scout'];
+    } else if (nameType === 'builder') {
+      selectedAdjectives = ['Master', 'Creative', 'Solid', 'Architect', 'Ingenious'];
+      selectedNouns = ['Builder', 'Crafter', 'Creator', 'Engineer', 'Artisan'];
+    } else if (nameType === 'stealth') {
+      selectedAdjectives = ['Silent', 'Shadow', 'Hidden', 'Phantom', 'Invisible'];
+      selectedNouns = ['Stalker', 'Rogue', 'Assassin', 'Ninja', 'Spy'];
+    }
+
+    const adjective = selectedAdjectives[Math.floor(Math.random() * selectedAdjectives.length)];
+    const noun = selectedNouns[Math.floor(Math.random() * selectedNouns.length)];
+
+    let generatedName = `${adjective}${noun}`;
+
+    if (addNumbers) {
+      generatedName += Math.floor(100 + Math.random() * 900); // 3-digit number
+    }
+    if (addSymbols) {
+      generatedName += symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    document.getElementById('name-box').textContent = generatedName;
+    showToast('تم توليد اسم جديد بنجاح!', 'success');
+  }
+
+  function copyGeneratedName() {
+    const nameText = document.getElementById('name-box').textContent;
+    if (nameText === 'اضغط توليد لإنشاء اسم!') {
+        showToast('يرجى توليد اسم أولاً!', 'warning');
+        return;
+    }
+    navigator.clipboard.writeText(nameText)
+      .then(() => {
+        showToast('تم نسخ الاسم إلى الحافظة!', 'success');
+      })
+      .catch(err => {
+        console.error('فشل النسخ:', err);
+        showToast('فشل نسخ الاسم. يرجى المحاولة يدوياً.', 'error');
+      });
+  }
+
+  // إرسال رسالة في الشات
+  function sendMessage() {
+    const usernameInput = document.getElementById('username-input');
+    const chatInput = document.getElementById('chat-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    const username = usernameInput.value.trim() || 'ضيف'; // يستخدم 'ضيف' إذا لم يتم إدخال اسم مستخدم
+    const message = chatInput.value.trim();
+
+    if (message === '') {
+        showToast('لا يمكن إرسال رسالة فارغة!', 'warning');
+        return;
+    }
+
+    const msgContainer = document.createElement('p');
+    const now = new Date();
+    const time = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }); // تنسيق الوقت عربي
+
+    // تصفية أساسية للرسالة لمنع بعض الحقن البسيط (وليس حقن HTML كامل)
+    const sanitizedMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    msgContainer.className = 'text-white mb-2 break-words'; // break-words للتعامل مع الكلمات الطويلة
+    msgContainer.innerHTML = `<span class="font-semibold text-yellow-300">[${username}]</span> <span class="text-gray-400 text-sm">(${time}):</span> ${sanitizedMessage}`;
+
+    chatMessages.appendChild(msgContainer);
+    chatInput.value = '';
+    showToast('تم إرسال رسالتك!', 'info');
+
+    // تمرير الرسائل إلى الأسفل تلقائيًا
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  // زر العودة للأعلى
+  const backToTopButton = document.getElementById('back-to-top');
+  window.onscroll = function() { scrollFunction() };
+
+  function scrollFunction() {
+    if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+      backToTopButton.classList.add('opacity-100', 'translate-y-0');
+      backToTopButton.classList.remove('opacity-0', 'translate-y-4');
+    } else {
+      backToTopButton.classList.remove('opacity-100', 'translate-y-0');
+      backToTopButton.classList.add('opacity-0', 'translate-y-4');
+    }
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // وظيفة الأكورديون للأسئلة الشائعة
+  function toggleAccordion(button) {
+    const content = button.nextElementSibling;
+    const icon = button.querySelector('i');
+
+    if (content.classList.contains('hidden')) {
+      content.classList.remove('hidden');
+      content.style.maxHeight = content.scrollHeight + 'px';
+      icon.classList.add('rotate-180');
+    } else {
+      content.style.maxHeight = '0'; // For smooth collapse
+      content.addEventListener('transitionend', () => {
+        content.classList.add('hidden');
+        content.style.maxHeight = null; // Reset for future expansions
+      }, { once: true });
+      icon.classList.remove('rotate-180');
+    }
+  }
+
+  // Smooth scroll for navigation links
+  document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+  });
+
+</script>
+
+<style>
+  /* تحسينات عامة للتصميم والأداء */
+  body {
+    scroll-behavior: smooth; /* لتمكين التمرير السلس للروابط */
+  }
+
+  /* الرأس الثابت */
+  header {
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  /* تأثيرات الظهور */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+  }
+  .animate-fade-in-delay-1 {
+    animation: fadeIn 1.5s ease-out forwards;
+    animation-delay: 0.2s; /* تأخير بسيط للفقرة */
+  }
+
+  /* تخصيص السكرول بار لمتصفحات الويب كيت (Chrome, Safari) */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #4a5568; /* bg-gray-700 */
+    border-radius: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #f6e05e; /* text-yellow-300 */
+    border-radius: 5px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #ecc94b; /* yellow-400 */
+  }
+
+  /* تخصيص السكرول بار لفايرفوكس */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #f6e05e #4a5568; /* thumb and track */
+  }
+
+  /* أنماط الأكورديون */
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+
+  /* لنسخ النص بسهولة في مولد الأسماء */
+  #name-box {
+    user-select: all; /* يتيح تحديد النص بسهولة */
+  }
+</style>
+<script type="text/javascript" src="js/script.js"></script>
+</body>
+</html>
