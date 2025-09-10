@@ -1,144 +1,63 @@
--- ✨ Grow a Garden 🌶️ Super Ultimate + Loadstring
-loadstring([[
--- تحميل السكربت الخارجي من GitHub
-pcall(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/mohamed157226/EnderTools/refs/heads/main/ms.lua"))()
-end)
+local Window = Rayfield:CreateWindow({
+    Name = "MRxcV.-v1",
+    LoadingTitle = "xcv Script Hub",
+    LoadingSubtitle = "by mohamed",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = nil, -- Create a custom folder for your hub/game
+       FileName = "Big Hub"
+    },
+    Discord = {
+       Enabled = false,
+       Invite = "noinvitelink", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD
+       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+       Title = "Untitled",
+       Subtitle = "Key System",
+       Note = "No method of obtaining the key is provided",
+       FileName = "Key", -- It is recommended to use something unique as other scripts using Rayfield may overwrite your key file
+       SaveKey = true, -- The user's key will be saved, but if you change the key, they will be unable to use your script
+       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+       Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
+    }
+ })
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+ local PlayerTab = Window:CreateTab("Player", 4483362458) -- Title, Image
 
--- GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "GrowGardenGUI"
-ScreenGui.Parent = playerGui
+ local Slider = PlayerTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {1, 10},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 10,
+    Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
+     game.Players.LocalPlayer.Character:SetAttribute("SpeedMultiplier", Value)
+    end,
+ })
 
-local Frame = Instance.new("Frame")
-Frame.Size = UDim2.new(0, 320, 0, 500)
-Frame.Position = UDim2.new(0, 20, 0, 20)
-Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-Frame.BorderSizePixel = 0
-Frame.Parent = ScreenGui
+ local Slider = PlayerTab:CreateSlider({
+    Name = "Dash length",
+    Range = {10, 1000},
+    Increment = 1,
+    Suffix = "Length",
+    CurrentValue = 10,
+    Flag = "Slider2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
+     game.Players.LocalPlayer.Character:SetAttribute("DashLength", Value)
+    end,
+ })
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.Padding = UDim.new(0,10)
-UIListLayout.Parent = Frame
-
--- Helper functions
-local function createButton(text, callback)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 50)
-    btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-    btn.TextColor3 = Color3.fromRGB(255,255,255)
-    btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 20
-    btn.Text = text
-    btn.Parent = Frame
-    btn.MouseButton1Click:Connect(callback)
-end
-
-local function createSlider(text, min, max, default, callback)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Size = UDim2.new(1, -20, 0, 50)
-    sliderFrame.BackgroundColor3 = Color3.fromRGB(60,60,60)
-    sliderFrame.Parent = Frame
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.5,0,1,0)
-    label.Text = text .. ": " .. default
-    label.TextColor3 = Color3.fromRGB(255,255,255)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.SourceSansBold
-    label.TextSize = 18
-    label.Parent = sliderFrame
-
-    local slider = Instance.new("TextButton")
-    slider.Size = UDim2.new(0.5,0,1,0)
-    slider.Position = UDim2.new(0.5,0,0,0)
-    slider.BackgroundColor3 = Color3.fromRGB(120,120,120)
-    slider.Text = ""
-    slider.Parent = sliderFrame
-
-    local value = default
-    slider.MouseButton1Down:Connect(function()
-        value = math.clamp(value + 10, min, max)
-        label.Text = text .. ": " .. value
-        callback(value)
-    end)
-end
-
--- Speed
-local Speed = 50
-createSlider("Speed", 16, 500, Speed, function(val)
-    Speed = val
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = Speed
-    end
-end)
-
--- Fly
-local flying = false
-createButton("Toggle Fly", function()
-    if not LocalPlayer.Character then return end
-    local character = LocalPlayer.Character
-    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
-    if not humanoidRootPart then return end
-    flying = not flying
-    if flying then
-        local bodyVelocity = Instance.new("BodyVelocity")
-        bodyVelocity.Name = "FlyVelocity"
-        bodyVelocity.Velocity = Vector3.new(0,0,0)
-        bodyVelocity.MaxForce = Vector3.new(400000,400000,400000)
-        bodyVelocity.Parent = humanoidRootPart
-    else
-        if humanoidRootPart:FindFirstChild("FlyVelocity") then
-            humanoidRootPart.FlyVelocity:Destroy()
-        end
-    end
-end)
-
--- Give Tools
-createButton("Give Tools", function()
-    local backpack = LocalPlayer:WaitForChild("Backpack")
-    local function addTool(name)
-        local tool = Instance.new("Tool")
-        tool.Name = name
-        tool.Parent = backpack
-    end
-    addTool("Super Shovel")
-    addTool("Watering Can")
-    addTool("Super Seeds")
-end)
-
--- AutoFarm / Harvest
-local autoFarmEnabled = false
-createButton("Toggle AutoFarm", function()
-    autoFarmEnabled = not autoFarmEnabled
-end)
-
-RunService.RenderStepped:Connect(function()
-    if autoFarmEnabled then
-        print("🌱 AutoFarm running... (يمكنك إضافة مواقع اللعبة الخاصة هنا)")
-    end
-end)
-
--- Teleport
-createButton("Teleport to Garden", function()
-    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0,10,0)
-    end
-end)
-
--- Spawn Tools
-createButton("Spawn Super Tool", function()
-    local backpack = LocalPlayer:WaitForChild("Backpack")
-    local tool = Instance.new("Tool")
-    tool.Name = "Mega Tool"
-    tool.Parent = backpack
-end)
-
-print("✨ Grow a Garden 🌶️ Super Ultimate Script Loaded! GUI ready at top-left.")
-]])()
+ local Slider = PlayerTab:CreateSlider({
+    Name = "Jump Height",
+    Range = {10, 500},
+    Increment = 1,
+    Suffix = "Height",
+    CurrentValue = 10,
+    Flag = "Slider3", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+    Callback = function(Value)
+     game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+    end,
+ })
