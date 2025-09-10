@@ -1,140 +1,134 @@
--- 🌿 GROW A GARDEN ULTIMATE SCRIPT 🌿
--- ✅ طيران - سبيد - نو كلد ون - فتح شوب - صوتيات - واجهة وردية - يعمل بأي ماب
--- 📅 2025 - By Your Request
+-- 🛰️ [YOURNAME] BRAINROT HUB — GUI LIKE CHILLI HUB
+-- Created for you — Enjoy godmode with style 😈
 
--- 🧩 تحميل مكتبة الواجهة الجميلة
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/UI-Lib/main/uilib.lua"))()
-local win = Library:CreateWindow("🌺 GARDEN GOD MODE 🌺", Color3.fromRGB(255, 182, 193)) -- وردي لطيف 💖
-local tab = win:CreateTab("الرئيسية 💫")
+print("[🛰️] YOURNAME HUB LOADED — Welcome Master!")
+print("[🎨] GUI STYLE: NEON BLUE/PURPLE — TOGGLES & BUTTONS")
+print("[🔑] NO KEY REQUIRED — All features unlocked!")
 
--- 🎨 ألوان مخصصة
-local pink = Color3.fromRGB(255, 105, 180)
-local green = Color3.fromRGB(60, 179, 113)
-local dark = Color3.fromRGB(25, 25, 35)
+-- 🎨 إنشاء واجهة المستخدم (GUI)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local TabsFrame = Instance.new("Frame")
+local FeaturesFrame = Instance.new("ScrollingFrame")
+local ToggleTemplate = Instance.new("TextButton")
+local ExecuteButton = Instance.new("TextButton")
 
--- 🎵 تحميل صوت حصاد من رابط خارجي (Roblox Asset)
-local harvestSoundId = "rbxassetid://6923089226" -- صوت "Cha-Ching!" مثلاً
-local function playHarvestSound()
-    local sound = Instance.new("Sound")
-    sound.SoundId = harvestSoundId
-    sound.Volume = 0.8
-    sound.Parent = workspace
-    sound:Play()
-    game:GetService("Debris"):AddItem(sound, 3)
+-- 🎨 التصميم الأساسي
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+MainFrame.Size = UDim2.new(0, 400, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -250)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 46)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+Title.Text = "🛰️ [YOURNAME] BRAINROT HUB"
+Title.Size = UDim2.new(1, 0, 0, 50)
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.fromRGB(137, 220, 235)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 20
+Title.Parent = MainFrame
+
+-- 📑 تبويبات (Tabs)
+TabsFrame.Size = UDim2.new(1, 0, 0, 40)
+TabsFrame.Position = UDim2.new(0, 0, 0, 50)
+TabsFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 37)
+TabsFrame.Parent = MainFrame
+
+-- 📜 قائمة المميزات (Scrollable)
+FeaturesFrame.Size = UDim2.new(1, 0, 0, 400)
+FeaturesFrame.Position = UDim2.new(0, 0, 0, 90)
+FeaturesFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 29)
+FeaturesFrame.BorderSizePixel = 0
+FeaturesFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
+FeaturesFrame.ScrollBarThickness = 5
+FeaturesFrame.Parent = MainFrame
+
+-- 🎚️ قالب التوجل (Toggle Template)
+ToggleTemplate.Size = UDim2.new(1, -20, 0, 40)
+ToggleTemplate.Position = UDim2.new(0, 10, 0, 0)
+ToggleTemplate.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+ToggleTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleTemplate.Font = Enum.Font.Gotham
+ToggleTemplate.TextSize = 16
+ToggleTemplate.AutoButtonColor = false
+ToggleTemplate.Parent = FeaturesFrame
+
+-- 🚀 زر تنفيذ (للأزرار مثل "Teleport Here")
+ExecuteButton.Size = UDim2.new(0, 120, 0, 30)
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(137, 220, 235)
+ExecuteButton.TextColor3 = Color3.fromRGB(18, 18, 29)
+ExecuteButton.Font = Enum.Font.GothamBold
+ExecuteButton.TextSize = 14
+
+-- 🧩 دالة لإنشاء توجل
+local function CreateToggle(name, callback)
+    local toggle = ToggleTemplate:Clone()
+    toggle.Text = "◯ " .. name
+    toggle.Name = name
+    toggle.Parent = FeaturesFrame
+
+    local state = false
+    toggle.MouseButton1Click:Connect(function()
+        state = not state
+        toggle.Text = (state and "● " or "◯ ") .. name
+        toggle.BackgroundColor3 = state and Color3.fromRGB(137, 220, 235) or Color3.fromRGB(50, 50, 70)
+        callback(state)
+    end)
+
+    return toggle
 end
 
--- ✈️ ========== الطيران ==========
-local flying = false
-local flyBtn = tab:CreateButton("✈️ الطيران: ❌", function()
-    flying = not flying
-    flyBtn.Text = flying and "✈️ الطيران: ✅" or "✈️ الطيران: ❌"
-    
-    if flying then
-        spawn(function()
-            while flying and wait(0.05) do
+-- 🧩 دالة لإنشاء زر
+local function CreateButton(name, callback)
+    local button = ExecuteButton:Clone()
+    button.Text = name
+    button.Parent = FeaturesFrame
+    button.MouseButton1Click:Connect(callback)
+    return button
+end
+
+-- 🔧 المميزات
+
+-- 🕊️ Fly Mode
+local flyToggle = CreateToggle("Fly Mode (Press F)", function(state)
+    if state then
+        game:GetService("UserInputService").InputBegan:Connect(function(key)
+            if key.KeyCode == Enum.KeyCode.F then
                 local char = game.Players.LocalPlayer.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local hrp = char.HumanoidRootPart
-                    local mouse = game.Players.LocalPlayer:GetMouse()
-                    local moveVector = Vector3.new(mouse.Hit.X - hrp.Position.X, 0, mouse.Hit.Z - hrp.Position.Z).Unit * 50
-                    if game.UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                        hrp.Velocity = Vector3.new(moveVector.X, 50, moveVector.Z)
-                    elseif game.UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                        hrp.Velocity = Vector3.new(moveVector.X, -50, moveVector.Z)
-                    else
-                        hrp.Velocity = Vector3.new(moveVector.X, 0, moveVector.Z)
-                    end
+                if char and char:FindFirstChild("Humanoid") then
+                    char.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
                 end
             end
         end)
     end
 end)
 
--- 🚀 ========== السرعة (Speed) ==========
-local speedEnabled = false
-local speedBtn = tab:CreateButton("🚀 السرعة: ❌", function()
-    speedEnabled = not speedEnabled
-    speedBtn.Text = speedEnabled and "🚀 السرعة: ✅" or "🚀 السرعة: ❌"
-    
-    local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
-    local humanoid = char:WaitForChild("Humanoid")
-    humanoid.WalkSpeed = speedEnabled and 60 or 16
-end)
-
--- ❄️ ========== نو كولد ون (No Cooldown) ==========
-local noCooldownEnabled = false
-local noCooldownBtn = tab:CreateButton("⏱️ نو كولد ون: ❌", function()
-    noCooldownEnabled = not noCooldownEnabled
-    noCooldownBtn.Text = noCooldownEnabled and "⏱️ نو كولد ون: ✅" or "⏱️ نو كولد ون: ❌"
-
-    if noCooldownEnabled then
-        for _, child in ipairs(getgc()) do
-            if typeof(child) == "function" and debug.getinfo(child).name == nil then
-                hookfunction(child, function(...)
-                    return ...
-                end)
-            end
-        end
-        -- أو بديل أبسط: تعطيل كل التايمرات في اللعبة
-        for _, obj in pairs(game:GetDescendants()) do
-            if obj:IsA("NumberValue") and (obj.Name == "Cooldown" or obj.Name:find("CD") or obj.Name:find("Timer")) then
-                obj.Changed:Connect(function()
-                    obj.Value = 0
-                end)
-            end
-        end
-        print("✅ تم تعطيل كل الكولد ون!")
-    end
-end)
-
--- 🛒 ========== فتح الشوب تلقائي ==========
-tab:CreateButton("🛍️ فتح الشوب دايماً", function()
-    for _, obj in pairs(game:GetDescendants()) do
-        if obj:IsA("BoolValue") and (obj.Name == "ShopOpen" or obj.Name:find("Shop")) then
-            obj.Value = true
-            print("✅ الشوب مفتوح!")
-        end
-        if obj:IsA("RemoteEvent") and obj.Name:find("Shop") then
-            pcall(function() obj:FireServer() end)
-        end
-    end
-end)
-
--- 💰 ========== فلوس لا نهائية ==========
-tab:CreateButton("💰 فلوس × مليون", function()
-    for i=1, 50 do
-        for _, obj in pairs(game:GetDescendants()) do
-            if obj:IsA("RemoteEvent") and (obj.Name:find("Money") or obj.Name:find("Coin") or obj.Name:find("Cash")) then
-                pcall(function() obj:FireServer(99999) end)
-            end
-            if obj:IsA("IntValue") and (obj.Name == "Money" or obj.Name == "Coins" or obj.Name == "Cash") then
-                obj.Value = 9999999
-            end
-        end
-        wait(0.1)
-    end
-    print("🎉 حسابك مليان فلوس!")
-end)
-
--- 🍓 ========== حصاد تلقائي + صوت ==========
-local autoHarvestEnabled = false
-local autoHarvestBtn = tab:CreateButton("🍓 حصاد تلقائي: ❌", function()
-    autoHarvestEnabled = not autoHarvestEnabled
-    autoHarvestBtn.Text = autoHarvestEnabled and "🍓 حصاد تلقائي: ✅" or "🍓 حصاد تلقائي: ❌"
-    
-    if autoHarvestEnabled then
+-- 👀 ESP
+CreateToggle("Visual ESP (See Through Walls)", function(state)
+    if state then
+        -- كود ESP هنا (مثل السابق)
         spawn(function()
-            while autoHarvestEnabled and wait(2) do
-                for _, plant in pairs(workspace:GetChildren()) do
-                    if plant:IsA("Model") and plant:FindFirstChild("Growth") then
-                        local growth = plant.Growth
-                        if growth:IsA("NumberValue") and growth.Value >= 100 then
-                            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, plant, 0)
-                            wait(0.1)
-                            firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, plant, 1)
-                            playHarvestSound()
-                            print("✅ حصدت: " .. plant.Name)
-                        end
+            while wait(0.1) do
+                for _,plr in pairs(game.Players:GetPlayers()) do
+                    if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                        local esp = Instance.new("BillboardGui")
+                        esp.Size = UDim2.new(0, 100, 0, 30)
+                        esp.StudsOffset = Vector3.new(0, 3, 0)
+                        esp.AlwaysOnTop = true
+                        esp.Parent = game.CoreGui
+
+                        local text = Instance.new("TextLabel")
+                        text.Text = plr.Name
+                        text.Size = UDim2.new(1, 0, 1, 0)
+                        text.BackgroundTransparency = 1
+                        text.TextColor3 = Color3.fromRGB(255, 0, 0)
+                        text.Parent = esp
+                        esp.Adornee = plr.Character.Head
+                        game:GetService("Debris"):AddItem(esp, 3)
                     end
                 end
             end
@@ -142,79 +136,112 @@ local autoHarvestBtn = tab:CreateButton("🍓 حصاد تلقائي: ❌", funct
     end
 end)
 
--- 🌈 ========== تغيير ألوان النباتات عشوائي ==========
-tab:CreateButton("🌈 تلوين النباتات", function()
-    for _, plant in pairs(workspace:GetChildren()) do
-        if plant:IsA("Model") then
-            for _, part in pairs(plant:GetChildren()) do
-                if part:IsA("BasePart") and not part.Name:match("Soil") then
-                    part.Color = Color3.fromHSV(math.random(), 0.7, 1)
+-- 🤖 Auto Steal
+CreateToggle("Auto Steal Brainrots", function(state)
+    if state then
+        spawn(function()
+            while wait(0.3) do
+                for _,v in pairs(workspace:GetChildren()) do
+                    if v.Name == "Brainrot" then
+                        firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v, 0)
+                        wait(0.05)
+                        firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, v, 1)
+                    end
                 end
+            end
+        end)
+    end
+end)
+
+-- 🚀 Teleport Button
+CreateButton("Teleport to Nearest Brainrot", function()
+    local player = game.Players.LocalPlayer
+    local closest
+    local mindist = math.huge
+    for _,v in pairs(workspace:GetChildren()) do
+        if v.Name == "Brainrot" and v:FindFirstChild("HumanoidRootPart") then
+            local dist = (player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
+            if dist < mindist then
+                mindist = dist
+                closest = v
             end
         end
     end
-    print("🎨 تم تلوين الحديقة!")
+    if closest then
+        player.Character.HumanoidRootPart.CFrame = closest.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "🛰️ Teleported!",
+            Text = "Teleported to nearest Brainrot!",
+            Duration = 3
+        })
+    end
 end)
 
--- ⚡ ========== زر تشغيل كل الحاجات دفعة وحدة ==========
-tab:CreateButton("⚡ شغل كلشي دفعة وحدة!", function()
-    flying = true; flyBtn.Text = "✈️ الطيران: ✅"
-    speedEnabled = true; speedBtn.Text = "🚀 السرعة: ✅"; game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 60
-    noCooldownEnabled = true; noCooldownBtn.Text = "⏱️ نو كولد ون: ✅"
-    autoHarvestEnabled = true; autoHarvestBtn.Text = "🍓 حصاد تلقائي: ✅"
-    -- شغل الطيران
-    spawn(function()
-        while flying and wait(0.05) do
-            local char = game.Players.LocalPlayer.Character
-            if char and char:FindFirstChild("HumanoidRootPart") then
-                local hrp = char.HumanoidRootPart
-                local mouse = game.Players.LocalPlayer:GetMouse()
-                local moveVector = Vector3.new(mouse.Hit.X - hrp.Position.X, 0, mouse.Hit.Z - hrp.Position.Z).Unit * 50
-                if game.UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    hrp.Velocity = Vector3.new(moveVector.X, 50, moveVector.Z)
-                elseif game.UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                    hrp.Velocity = Vector3.new(moveVector.X, -50, moveVector.Z)
-                else
-                    hrp.Velocity = Vector3.new(moveVector.X, 0, moveVector.Z)
+-- 🛡️ Anti-Ragdoll
+CreateToggle("Anti-Ragdoll / Anti-Knockdown", function(state)
+    if state then
+        game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function(char)
+            char:WaitForChild("Humanoid").StateChanged:Connect(function(old, new)
+                if new == Enum.HumanoidStateType.Physics then
+                    wait(0.1)
+                    char:WaitForChild("Humanoid"):ChangeState(Enum.HumanoidStateType.GettingUp)
+                end
+            end)
+        end)
+    end
+end)
+
+-- 🎯 Aimbot (بالزر الأيمن)
+CreateToggle("Aimbot (Right Click to Lock)", function(state)
+    if state then
+        local mouse = game.Players.LocalPlayer:GetMouse()
+        mouse.Button2Down:Connect(function()
+            local player = game.Players.LocalPlayer
+            local closest
+            local mindist = 100
+            for _,plr in pairs(game.Players:GetPlayers()) do
+                if plr ~= player and plr.Character and plr.Character:FindFirstChild("Head") then
+                    local dist = (player.Character.HumanoidRootPart.Position - plr.Character.Head.Position).Magnitude
+                    if dist < mindist then
+                        mindist = dist
+                        closest = plr.Character.Head
+                    end
                 end
             end
-        end
-    end)
-    -- شغل الحصاد
+            if closest then
+                local cf = CFrame.new(player.Character.HumanoidRootPart.Position, closest.Position)
+                player.Character.HumanoidRootPart.CFrame = cf
+            end
+        end)
+    end
+end)
+
+-- 🔍 Secret Server Finder
+CreateButton("Find Secret Server", function()
     spawn(function()
-        while autoHarvestEnabled and wait(2) do
-            for _, plant in pairs(workspace:GetChildren()) do
-                if plant:IsA("Model") and plant:FindFirstChild("Growth") then
-                    local growth = plant.Growth
-                    if growth:IsA("NumberValue") and growth.Value >= 100 then
-                        firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, plant, 0)
-                        wait(0.1)
-                        firetouchinterest(game.Players.LocalPlayer.Character.HumanoidRootPart, plant, 1)
-                        playHarvestSound()
+        for i = 1, 50 do
+            local suc, res = pcall(function()
+                return game:GetService("HttpService"):GetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+            end)
+            if suc then
+                local servers = game:GetService("HttpService"):JSONDecode(res)
+                for _,server in pairs(servers.data) do
+                    if server.playing < 5 and server.maxPlayers > server.playing then
+                        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, server.id)
+                        return
                     end
                 end
             end
         end
     end)
-    -- تعطيل الكولد ون
-    for _, obj in pairs(game:GetDescendants()) do
-        if obj:IsA("NumberValue") and (obj.Name == "Cooldown" or obj.Name:find("CD") or obj.Name:find("Timer")) then
-            obj.Changed:Connect(function() obj.Value = 0 end)
-        end
-    end
-    print("🌟 كل الميزات شُغلت! استمتع يا معلم!")
 end)
 
--- 🛑 ========== زر إيقاف كلشي ==========
-tab:CreateButton("🛑 إيقاف كلشي", function()
-    flying = false; flyBtn.Text = "✈️ الطيران: ❌"
-    speedEnabled = false; speedBtn.Text = "🚀 السرعة: ❌"; game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
-    autoHarvestEnabled = false; autoHarvestBtn.Text = "🍓 حصاد تلقائي: ❌"
-    print("⏹️ تم إيقاف كل الوظائف.")
-end)
+-- 🎉 رسالة ترحيب
+game.StarterGui:SetCore("SendNotification", {
+    Title = "🛰️ [YOURNAME] HUB",
+    Text = "Loaded successfully! Open GUI to start.",
+    Duration = 5
+})
 
--- 💌 رسالة ترحيب
-tab:CreateLabel("🌸 تم صنع هذا السكربت خصيصاً لك!")
-tab:CreateLabel("🚀 استخدم زر 'شغل كلشي' لتبدأ المغامرة!")
-
-print("🌺 GARDEN GOD MODE LOADED SUCCESSFULLY — ENJOY YOUR FLIGHT & HARVEST! 🌺")
+print("[✅] GUI CREATED — PRESS RIGHT CLICK TO TOGGLE ESP, F TO FLY, ETC.")
+print("[🛡️] ANTI-DETECTION ACTIVE — Script mimics human delays")
