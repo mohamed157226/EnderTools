@@ -1,197 +1,174 @@
--- 🛰️ Brainrot Hub Pro v2.0
--- Made by Mohammed | Universal Hub (Steal a Brainrot Ready)
+-- 🛰️ Brainrot Hub Ultimate v4.0
+-- Made by Mohammed | Optimized for Steal a Brainrot
 
--- Services
-local Players, RunService, UserInputService, Lighting, TeleportService =
-    game:GetService("Players"),
-    game:GetService("RunService"),
-    game:GetService("UserInputService"),
-    game:GetService("Lighting"),
-    game:GetService("TeleportService")
+local Players, RunService, UserInputService, Lighting, ReplicatedStorage, TeleportService =
+    game:GetService("Players"), game:GetService("RunService"), game:GetService("UserInputService"),
+    game:GetService("Lighting"), game:GetService("ReplicatedStorage"), game:GetService("TeleportService")
 
-local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local LocalPlayer, PlayerGui = Players.LocalPlayer, Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Cleanup
+-- Clean up old
 pcall(function() PlayerGui:FindFirstChild("BrainrotHub"):Destroy() end)
 
--- GuiLib (Simple Tabs)
-local Gui = Instance.new("ScreenGui", PlayerGui)
-Gui.Name = "BrainrotHub"
-local Main = Instance.new("Frame", Gui)
-Main.Size = UDim2.new(0, 520, 0, 360)
-Main.Position = UDim2.new(0.25, 0, 0.2, 0)
-Main.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-Main.Active, Main.Draggable = true, true
-Main.Visible = true
+-- Settings
+local Settings = {
+    Fly = false, NoClip = false, AutoSteal = false, AutoFarm = false, ESP = false,
+    Speed = 32, Jump = 70, FullBright = false, AntiKnock = true
+}
 
-local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.Text = "🛰️ Brainrot Hub Pro"
-Title.TextColor3 = Color3.fromRGB(0, 255, 180)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
-Title.BackgroundTransparency = 1
+-- Save/Load
+local function saveSettings()
+    if isfile and writefile then
+        writefile("BrainrotHub.json", game:GetService("HttpService"):JSONEncode(Settings))
+    end
+end
+local function loadSettings()
+    if isfile and readfile and isfile("BrainrotHub.json") then
+        local data = game:GetService("HttpService"):JSONDecode(readfile("BrainrotHub.json"))
+        for k,v in pairs(data) do Settings[k]=v end
+    end
+end
+loadSettings()
 
--- Vars
-local fly, noclip, autoSteal, autoFarm, fullbright, antiKnock, aimbot = false,false,false,false,false,true,false
-local speed, jump = 32, 70
-
--- Notification
+-- Notify
 local function notify(msg)
-    local n = Instance.new("TextLabel", Gui)
-    n.Size = UDim2.new(0, 300, 0, 40)
-    n.Position = UDim2.new(0.5, -150, 0.05, 0)
-    n.BackgroundColor3 = Color3.fromRGB(20,20,30)
-    n.TextColor3 = Color3.fromRGB(0,255,180)
-    n.Font = Enum.Font.GothamBold
-    n.TextSize = 14
-    n.Text = msg
-    game:GetService("Debris"):AddItem(n, 2)
+    local sg = Instance.new("ScreenGui", PlayerGui)
+    sg.Name = "BN_Notify"
+    local lbl = Instance.new("TextLabel", sg)
+    lbl.Size, lbl.Position = UDim2.new(0, 300, 0, 40), UDim2.new(0.5, -150, 0.1, 0)
+    lbl.BackgroundColor3, lbl.TextColor3 = Color3.fromRGB(20,20,30), Color3.fromRGB(0,255,180)
+    lbl.Font, lbl.TextSize, lbl.Text = Enum.Font.GothamBold, 16, msg
+    game:GetService("Debris"):AddItem(sg, 3)
 end
 
-notify("✅ Brainrot Hub Pro Loaded!")
+notify("✅ Brainrot Hub Ultimate v4.0 Loaded!")
 
--- Reapply after respawn
-LocalPlayer.CharacterAdded:Connect(function()
-    task.wait(3)
-    notify("♻️ Hub Re-Loaded after Respawn")
-end)
+-- GUI
+local hub, main = Instance.new("ScreenGui", PlayerGui), Instance.new("Frame")
+hub.Name = "BrainrotHub"
+main.Parent, main.Size, main.Position, main.BackgroundColor3 =
+    hub, UDim2.new(0, 600, 0, 400), UDim2.new(0.25, 0, 0.2, 0), Color3.fromRGB(15, 15, 25)
+main.Active, main.Draggable = true, true
 
--- Movement Loop
-RunService.RenderStepped:Connect(function()
-    local char = LocalPlayer.Character
-    if not char then return end
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if fly and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.Velocity = Vector3.new(0, speed, 0)
-    end
-    if noclip then
-        for _,p in pairs(char:GetDescendants()) do
-            if p:IsA("BasePart") then p.CanCollide = false end
-        end
-    end
-    if hum then
-        hum.WalkSpeed = speed
-        hum.JumpPower = jump
-        if antiKnock then
-            hum.PlatformStand = false
-        end
-    end
-end)
+-- Tabs
+local tabs, content = Instance.new("Frame", main), Instance.new("Frame", main)
+tabs.Size, tabs.Position, tabs.BackgroundColor3 = UDim2.new(0, 120, 1, -40), UDim2.new(0,0,0,40), Color3.fromRGB(25,25,35)
+content.Size, content.Position, content.BackgroundColor3 = UDim2.new(1,-120,1,-40), UDim2.new(0,120,0,40), Color3.fromRGB(20,20,30)
 
--- Helper: Create button
-local function makeBtn(name, ypos, callback)
-    local b = Instance.new("TextButton", Main)
-    b.Size = UDim2.new(0, 480, 0, 30)
-    b.Position = UDim2.new(0, 20, 0, ypos)
-    b.Text = name
-    b.Font = Enum.Font.Gotham
-    b.TextSize = 14
-    b.TextColor3 = Color3.new(1,1,1)
-    b.BackgroundColor3 = Color3.fromRGB(30,30,45)
+local function newTab(name)
+    local btn = Instance.new("TextButton", tabs)
+    btn.Size, btn.Text = UDim2.new(1,0,0,30), name
+    btn.Font, btn.TextSize, btn.TextColor3, btn.BackgroundColor3 = Enum.Font.Gotham, 14, Color3.fromRGB(255,255,255), Color3.fromRGB(30,30,45)
+    local frame = Instance.new("ScrollingFrame", content)
+    frame.Size, frame.Visible, frame.ScrollBarThickness = UDim2.new(1,0,1,0), false, 6
+    btn.MouseButton1Click:Connect(function() for _,v in pairs(content:GetChildren()) do v.Visible=false end frame.Visible=true end)
+    return frame
+end
+
+local function makeBtn(parent, text, callback)
+    local b = Instance.new("TextButton", parent)
+    b.Size, b.Position = UDim2.new(1,-20,0,30), UDim2.new(0,10,0,#parent:GetChildren()*35)
+    b.Text, b.Font, b.TextSize, b.TextColor3, b.BackgroundColor3 = text, Enum.Font.Gotham, 14, Color3.fromRGB(255,255,255), Color3.fromRGB(35,35,50)
     b.MouseButton1Click:Connect(callback)
-    return b
 end
 
--- Buttons / Features
-makeBtn("🕊️ Toggle Fly", 50, function() fly = not fly notify("Fly: "..tostring(fly)) end)
-makeBtn("🚪 Toggle NoClip", 90, function() noclip = not noclip notify("NoClip: "..tostring(noclip)) end)
-makeBtn("⚡ Instant Steal (Click)", 130, function()
-    for _,obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name:lower():match("brainrot") then
-            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 0)
-            task.wait()
-            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 1)
+-- Tabs
+local movementTab, farmTab, espTab, tpTab, miscTab, settingsTab =
+    newTab("Movement"), newTab("Farming"), newTab("ESP"), newTab("Teleports"), newTab("Misc"), newTab("Settings")
+
+-- Movement
+makeBtn(movementTab,"🕊️ Toggle Fly",function() Settings.Fly=not Settings.Fly notify("Fly: "..tostring(Settings.Fly)) saveSettings() end)
+makeBtn(movementTab,"🚪 Toggle NoClip",function() Settings.NoClip=not Settings.NoClip notify("NoClip: "..tostring(Settings.NoClip)) saveSettings() end)
+
+-- Farming
+makeBtn(farmTab,"⚡ Instant Steal",function()
+    local char = LocalPlayer.Character if char and char:FindFirstChild("HumanoidRootPart") then
+        for _,obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and obj.Name:lower():match("brainrot") then
+                firetouchinterest(char.HumanoidRootPart,obj,0) task.wait() firetouchinterest(char.HumanoidRootPart,obj,1)
+            end
         end
     end
-    notify("Instant Steal Triggered")
 end)
-makeBtn("🤖 Auto Steal", 170, function()
-    autoSteal = not autoSteal
-    if autoSteal then
-        notify("Auto Steal ON")
+
+makeBtn(farmTab,"🤖 Auto Steal",function()
+    Settings.AutoSteal=not Settings.AutoSteal
+    if Settings.AutoSteal then
         task.spawn(function()
-            while autoSteal do
-                task.wait(math.random(1,2))
-                for _,obj in pairs(workspace:GetDescendants()) do
-                    if obj:IsA("BasePart") and obj.Name:lower():match("brainrot") then
-                        firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 0)
-                        task.wait()
-                        firetouchinterest(LocalPlayer.Character.HumanoidRootPart, obj, 1)
+            while Settings.AutoSteal do task.wait(1)
+                pcall(function()
+                    local char = LocalPlayer.Character
+                    for _,obj in pairs(workspace:GetDescendants()) do
+                        if obj:IsA("BasePart") and obj.Name:lower():match("brainrot") then
+                            firetouchinterest(char.HumanoidRootPart,obj,0) task.wait() firetouchinterest(char.HumanoidRootPart,obj,1)
+                        end
                     end
-                end
+                end)
             end
         end)
-    else
-        notify("Auto Steal OFF")
     end
+    saveSettings()
 end)
-makeBtn("🌱 Auto Farm / Buy / Rebirth", 210, function()
-    autoFarm = not autoFarm
-    if autoFarm then
-        notify("Auto Farm ON")
+
+makeBtn(farmTab,"🌱 Auto Farm/Buy/Rebirth",function()
+    Settings.AutoFarm=not Settings.AutoFarm
+    if Settings.AutoFarm then
         task.spawn(function()
-            while autoFarm do
-                task.wait(5)
-                -- Example: fire Remote for Buy/Rebirth if exists
-                local rs = game:GetService("ReplicatedStorage")
-                if rs:FindFirstChild("RebirthEvent") then
-                    rs.RebirthEvent:FireServer()
-                end
-                if rs:FindFirstChild("BuyUpgradeEvent") then
-                    rs.BuyUpgradeEvent:FireServer("Speed")
-                end
+            while Settings.AutoFarm do task.wait(5)
+                pcall(function()
+                    if ReplicatedStorage:FindFirstChild("RebirthEvent") then ReplicatedStorage.RebirthEvent:FireServer() end
+                    if ReplicatedStorage:FindFirstChild("BuyUpgradeEvent") then ReplicatedStorage.BuyUpgradeEvent:FireServer("Speed") end
+                end)
             end
         end)
+    end
+    saveSettings()
+end)
+
+-- ESP
+makeBtn(espTab,"👀 Toggle ESP",function() Settings.ESP=not Settings.ESP notify("ESP: "..tostring(Settings.ESP)) saveSettings() end)
+
+-- Teleports
+makeBtn(tpTab,"🏠 Return to Base",function()
+    if workspace:FindFirstChild(LocalPlayer.Name.."_Base") then
+        LocalPlayer.Character:PivotTo(workspace[LocalPlayer.Name.."_Base"].PrimaryPart.CFrame)
     else
-        notify("Auto Farm OFF")
+        LocalPlayer.Character:PivotTo(workspace.SpawnLocation.CFrame)
     end
 end)
-makeBtn("👀 ESP Players & Items", 250, function()
-    for _,plr in pairs(Players:GetPlayers()) do
-        if plr.Character and not plr.Character:FindFirstChild("ESP") then
-            local h = Instance.new("Highlight", plr.Character)
-            h.Name="ESP"
-            h.FillTransparency=1
-            h.OutlineColor=Color3.fromRGB(0,255,0)
-        end
-    end
-    for _,obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Name:lower():match("brainrot") and not obj:FindFirstChild("ESP") then
-            local h = Instance.new("Highlight", obj)
-            h.Name="ESP"
-            h.FillTransparency=1
-            h.OutlineColor=Color3.fromRGB(255,0,0)
-        end
-    end
-    notify("ESP Applied")
-end)
-makeBtn("🚀 Teleport Random Brainrot", 290, function()
+
+makeBtn(tpTab,"🛰️ Teleport to Brainrots",function()
     for _,obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and obj.Name:lower():match("brainrot") then
-            LocalPlayer.Character:MoveTo(obj.Position + Vector3.new(0,5,0))
-            notify("Teleported to Brainrot")
+            LocalPlayer.Character:PivotTo(obj.CFrame+Vector3.new(0,3,0))
             break
         end
     end
 end)
-makeBtn("🛡️ Toggle Anti-Knockdown", 330, function() antiKnock = not antiKnock notify("Anti Knock: "..tostring(antiKnock)) end)
+
+makeBtn(tpTab,"👥 Teleport to Random Player",function()
+    local plrs=Players:GetPlayers()
+    local target=plrs[math.random(1,#plrs)]
+    if target and target.Character then LocalPlayer.Character:PivotTo(target.Character:GetPivot()) end
+end)
+
+-- Misc
+makeBtn(miscTab,"💡 Toggle FullBright",function() Settings.FullBright=not Settings.FullBright saveSettings() end)
+makeBtn(miscTab,"🛡️ Toggle Anti Knock",function() Settings.AntiKnock=not Settings.AntiKnock saveSettings() end)
+makeBtn(miscTab,"🔄 Server Hop",function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
+
+-- Respawn Auto Reinjection
+LocalPlayer.CharacterAdded:Connect(function() task.wait(3) notify("♻️ Hub Re-Loaded After Respawn") loadSettings() end)
+
+-- Loops
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if Settings.Fly and char:FindFirstChild("HumanoidRootPart") then char.HumanoidRootPart.Velocity=Vector3.new(0,Settings.Speed,0) end
+    if Settings.NoClip then for _,p in pairs(char:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide=false end end end
+    if hum then hum.WalkSpeed, hum.JumpPower, hum.PlatformStand = Settings.Speed, Settings.Jump, not Settings.AntiKnock end
+    if Settings.FullBright then Lighting.Ambient=Color3.new(1,1,1) Lighting.Brightness=2 end
+end)
 
 -- Anti AFK
-LocalPlayer.Idled:Connect(function()
-    notify("⏳ Anti-AFK Triggered")
-    VirtualUser = game:GetService("VirtualUser")
-    VirtualUser:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    VirtualUser:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
-end)
-
--- FullBright
-Lighting.Changed:Connect(function()
-    if fullbright then
-        Lighting.Brightness = 2
-        Lighting.Ambient = Color3.new(1,1,1)
-        Lighting.OutdoorAmbient = Color3.new(1,1,1)
-    end
-end)
+LocalPlayer.Idled:Connect(function() local vu=game:GetService("VirtualUser") vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame) task.wait(1) vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame) end)
