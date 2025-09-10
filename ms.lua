@@ -1,5 +1,5 @@
--- 🌱 Grow a Garden Hub v2
--- Fake Features / Fun Only
+-- 🌱 Garden Hub v3
+-- Full functional interactive hub
 
 repeat task.wait() until game:GetService("Players").LocalPlayer
 local player = game.Players.LocalPlayer
@@ -16,29 +16,30 @@ end)
 -- Default settings
 local settings = {
     FlySpeed = 50,
-    AnimalCount = 1,
+    AnimalCount = 3,
     PlantColorMode = "Random", -- "Random" or "Green"
 }
 
--- GUI
+-- Screen GUI
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "GardenHub"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
+-- Main Frame
 local main = Instance.new("Frame", screenGui)
-main.Size = UDim2.new(0, 360, 0, 300)
-main.Position = UDim2.new(0.33, 0, 0.3, 0)
-main.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-
+main.Size = UDim2.new(0, 360, 0, 400)
+main.Position = UDim2.new(0.33, 0, 0.2, 0)
+main.BackgroundColor3 = Color3.fromRGB(35,35,35)
 local uiCorner = Instance.new("UICorner", main)
-uiCorner.CornerRadius = UDim.new(0, 10)
+uiCorner.CornerRadius = UDim.new(0,10)
 
+-- Title
 local title = Instance.new("TextLabel", main)
-title.Text = "🌶️ Garden Hub"
-title.Size = UDim2.new(1, 0, 0, 40)
+title.Text = "🌿 Garden Hub v3"
+title.Size = UDim2.new(1,0,0,40)
 title.BackgroundTransparency = 1
-title.TextColor3 = Color3.new(1, 1, 1)
+title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 22
 
@@ -53,7 +54,6 @@ contentFrame.Size = UDim2.new(1,0,1,-70)
 contentFrame.Position = UDim2.new(0,0,0,70)
 contentFrame.BackgroundTransparency = 1
 
--- Tab switching system
 local tabs = {}
 local function createTab(name)
     local btn = Instance.new("TextButton", tabFrame)
@@ -88,27 +88,34 @@ end
 
 -- Main Tab
 local mainPage = createTab("Main")
+local settingsPage = createTab("Settings")
+local funPage = createTab("Fun")
 
-local function createButton(parent, text, pos, callback)
+-- Helper function: buttons
+local function createButton(parent,text,pos,callback)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
-    btn.Position = UDim2.new(0.05, 0, 0, pos)
-    btn.BackgroundColor3 = Color3.fromRGB(70, 130, 180)
+    btn.Size = UDim2.new(0.9,0,0,35)
+    btn.Position = UDim2.new(0.05,0,0, pos)
+    btn.BackgroundColor3 = Color3.fromRGB(70,130,180)
     btn.Text = text
     btn.TextColor3 = Color3.new(1,1,1)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 18
     btn.MouseButton1Click:Connect(callback)
     local c = Instance.new("UICorner", btn)
-    c.CornerRadius = UDim.new(0, 8)
+    c.CornerRadius = UDim.new(0,8)
 end
 
-createButton(mainPage, "🌱 Fake Farm", 10, function()
-    game.StarterGui:SetCore("SendNotification", {
-        Title = "🌱 Farming...";
-        Text = "You harvested 50 carrots!";
-        Duration = 4;
-    })
+-- === Main Buttons ===
+createButton(mainPage, "🌱 Grow Plant", 10, function()
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(2,math.random(3,6),2)
+    part.Anchored = true
+    part.Color = settings.PlantColorMode == "Random" 
+        and Color3.fromRGB(math.random(50,255), math.random(100,255), math.random(50,255))
+        or Color3.fromRGB(34,139,34)
+    part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-6,6),0,math.random(-6,6))
+    part.Parent = workspace
 end)
 
 createButton(mainPage, "🐄 Spawn Animals", 50, function()
@@ -120,8 +127,9 @@ createButton(mainPage, "🐄 Spawn Animals", 50, function()
         part.Anchored = true
         part.Shape = Enum.PartType.Ball
         part.Color = Color3.fromRGB(math.random(50,255), math.random(50,255), math.random(50,255))
-        part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-8,8), 3, math.random(-8,8))
+        part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-8,8),3,math.random(-8,8))
         part.Parent = workspace
+
         local billboard = Instance.new("BillboardGui", part)
         billboard.Size = UDim2.new(0,100,0,30)
         billboard.AlwaysOnTop = true
@@ -134,27 +142,22 @@ createButton(mainPage, "🐄 Spawn Animals", 50, function()
     end
 end)
 
-createButton(mainPage, "🌾 Grow Plant", 90, function()
-    local part = Instance.new("Part")
-    part.Size = Vector3.new(2, math.random(3,6), 2)
-    part.Anchored = true
-    part.Color = settings.PlantColorMode == "Random"
-        and Color3.fromRGB(math.random(50,255), math.random(100,255), math.random(50,255))
-        or Color3.fromRGB(34,139,34)
-    part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-6,6), 0, math.random(-6,6))
-    part.Parent = workspace
-end)
-
-createButton(mainPage, "🏠 Teleport Base", 130, function()
-    local char = player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(0,5,0))
+createButton(mainPage, "🏠 Teleport Base", 90, function()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(0,5,0))
     end
 end)
 
--- Settings Tab
-local settingsPage = createTab("Settings")
+createButton(mainPage, "🕊️ Fly Mode Toggle", 130, function()
+    flying = not flying
+    game.StarterGui:SetCore("SendNotification", {
+        Title = flying and "Fly Mode Activated" or "Fly Mode Deactivated",
+        Text = "Use WASD to move",
+        Duration = 3
+    })
+end)
 
+-- === Settings Tab ===
 local flyLabel = Instance.new("TextLabel", settingsPage)
 flyLabel.Text = "Fly Speed:"
 flyLabel.Position = UDim2.new(0.05,0,0,10)
@@ -200,4 +203,71 @@ colorBtn.TextColor3 = Color3.new(1,1,1)
 colorBtn.MouseButton1Click:Connect(function()
     settings.PlantColorMode = settings.PlantColorMode == "Random" and "Green" or "Random"
     colorBtn.Text = "Plant Color: " .. settings.PlantColorMode
+end)
+
+-- === Fun Tab ===
+createButton(funPage, "🌈 Magical Plant", 10, function()
+    local part = Instance.new("Part")
+    part.Size = Vector3.new(2,math.random(3,6),2)
+    part.Anchored = true
+    part.Shape = Enum.PartType.Cylinder
+    part.Material = Enum.Material.Neon
+    part.Color = Color3.fromHSV(math.random(),1,1)
+    part.Position = player.Character.HumanoidRootPart.Position + Vector3.new(math.random(-6,6),0,math.random(-6,6))
+    part.Parent = workspace
+    local tweenService = game:GetService("TweenService")
+    local goal = {Position = part.Position + Vector3.new(0,math.random(3,6),0)}
+    local tween = tweenService:Create(part,TweenInfo.new(2,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),goal)
+    tween:Play()
+end)
+
+createButton(funPage, "🌦️ Random Weather", 50, function()
+    local weather = {"Fog","Bright","Dark"}
+    local choice = weather[math.random(1,#weather)]
+    if choice == "Fog" then
+        workspace.FogStart = 0
+        workspace.FogEnd = 100
+        workspace.FogColor = Color3.fromRGB(200,200,200)
+    elseif choice == "Bright" then
+        workspace.FogEnd = 1000
+        workspace.FogColor = Color3.fromRGB(255,255,255)
+    elseif choice == "Dark" then
+        workspace.FogEnd = 1000
+        workspace.FogColor = Color3.fromRGB(30,30,30)
+    end
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Weather Changed",
+        Text = choice,
+        Duration = 3
+    })
+end)
+
+-- === Fly Mode Implementation ===
+local flying = false
+local uis = game:GetService("UserInputService")
+local rs = game:GetService("RunService")
+uis.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.F then
+        flying = not flying
+        game.StarterGui:SetCore("SendNotification", {
+            Title = flying and "Fly Mode Activated" or "Fly Mode Deactivated",
+            Text = "Use WASD to move",
+            Duration = 3
+        })
+    end
+end)
+
+rs.RenderStepped:Connect(function(delta)
+    if flying and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = player.Character.HumanoidRootPart
+        local cam = workspace.CurrentCamera
+        local dir = Vector3.new()
+        if uis:IsKeyDown(Enum.KeyCode.W) then dir = dir + cam.CFrame.LookVector end
+        if uis:IsKeyDown(Enum.KeyCode.S) then dir = dir - cam.CFrame.LookVector end
+        if uis:IsKeyDown(Enum.KeyCode.A) then dir = dir - cam.CFrame.RightVector end
+        if uis:IsKeyDown(Enum.KeyCode.D) then dir = dir + cam.CFrame.RightVector end
+        if dir.Magnitude > 0 then
+            hrp.CFrame = hrp.CFrame + dir.Unit * settings.FlySpeed * delta
+        end
+    end
 end)
