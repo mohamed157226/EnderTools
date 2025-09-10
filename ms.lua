@@ -1,21 +1,33 @@
--- BrainrotServer (Server Side)
+-- Brainrot Nexus - OneScript Edition
+-- حط السكربت ده في ServerScriptService، وهو هيبني كل حاجة لوحده.
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
--- Events
-local BuyPetEvent = ReplicatedStorage:WaitForChild("BuyPetEvent")
-local RequestCollect = ReplicatedStorage:WaitForChild("RequestCollect")
-local ToggleDoorEvent = ReplicatedStorage:WaitForChild("ToggleDoorEvent")
+-- ===[ Create RemoteEvents if missing ]===
+local function ensureEvent(name)
+    local ev = ReplicatedStorage:FindFirstChild(name)
+    if not ev then
+        ev = Instance.new("RemoteEvent")
+        ev.Name = name
+        ev.Parent = ReplicatedStorage
+    end
+    return ev
+end
 
--- Pets Folder
+local BuyPetEvent = ensureEvent("BuyPetEvent")
+local RequestCollect = ensureEvent("RequestCollect")
+local ToggleDoorEvent = ensureEvent("ToggleDoorEvent")
+
+-- Ensure Pets folder exists
 local PetsFolder = ReplicatedStorage:FindFirstChild("Pets")
 if not PetsFolder then
     PetsFolder = Instance.new("Folder", ReplicatedStorage)
     PetsFolder.Name = "Pets"
+    PetsFolder.Parent = ReplicatedStorage
 end
 
--- Init
+-- ===[ Server Side Logic ]===
 Players.PlayerAdded:Connect(function(plr)
     if plr:GetAttribute("Coins") == nil then
         plr:SetAttribute("Coins", 0)
@@ -25,7 +37,7 @@ Players.PlayerAdded:Connect(function(plr)
     end
 end)
 
--- Buy Pets
+-- Buy Pet
 BuyPetEvent.OnServerEvent:Connect(function(player, petName, price)
     if typeof(petName) ~= "string" or typeof(price) ~= "number" then return end
     local coins = player:GetAttribute("Coins") or 0
@@ -48,7 +60,7 @@ BuyPetEvent.OnServerEvent:Connect(function(player, petName, price)
     BuyPetEvent:FireClient(player, true, "Bought " .. petName .. "!")
 end)
 
--- Collect Coins
+-- Collect Coin
 RequestCollect.OnServerEvent:Connect(function(player, part)
     if not part or not part:IsA("BasePart") then return end
     if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
@@ -77,84 +89,79 @@ ToggleDoorEvent.OnServerEvent:Connect(function(player, doorName)
         doorPart.Transparency = locked.Value and 0.5 or 0
     end
     ToggleDoorEvent:FireClient(player, true, locked.Value)
+end)
 
-        -- BrainrotClient (Client Side GUI)
-
+-- ===[ Insert LocalScript to each player automatically ]===
+local clientSource = [[
+-- Brainrot Nexus Client Side GUI
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Events
 local BuyPetEvent = ReplicatedStorage:WaitForChild("BuyPetEvent")
 local RequestCollect = ReplicatedStorage:WaitForChild("RequestCollect")
 local ToggleDoorEvent = ReplicatedStorage:WaitForChild("ToggleDoorEvent")
+local PetsFolder = ReplicatedStorage:FindFirstChild("Pets")
 
--- Remove old GUI
+-- Remove old
 pcall(function() PlayerGui.BrainrotNexusGUI:Destroy() end)
 
 -- Settings
-local SETTINGS = {speed=30,jumpPower=70,flySpeed=60,guiVisible=true,hotkey=Enum.KeyCode.RightShift}
+local SETTINGS = {speed=30,jumpPower=70,flySpeed=60}
 pcall(function()
     local saved = LocalPlayer:GetAttribute("BN_Settings")
     if saved ~= "" then
-        local ok, t = pcall(function() return HttpService:JSONDecode(saved) end)
+        local ok,t = pcall(function() return HttpService:JSONDecode(saved) end)
         if ok then SETTINGS = t end
     end
 end)
 
-local function saveSettings()
-    LocalPlayer:SetAttribute("BN_Settings", HttpService:JSONEncode(SETTINGS))
-end
-
 -- Notify
 local function notify(txt)
     local sg = Instance.new("ScreenGui", PlayerGui)
-    sg.Name = "BN_Notify"
-    local f = Instance.new("TextLabel", sg)
-    f.Size = UDim2.new(0,300,0,40)
-    f.Position = UDim2.new(0.5,-150,0.1,0)
-    f.BackgroundColor3 = Color3.fromRGB(20,20,30)
-    f.TextColor3 = Color3.fromRGB(0,255,180)
-    f.Font = Enum.Font.GothamBold
-    f.TextSize = 16
-    f.Text = txt
+    sg.Name="BN_Notify"
+    local l=Instance.new("TextLabel",sg)
+    l.Size=UDim2.new(0,300,0,40)
+    l.Position=UDim2.new(0.5,-150,0.1,0)
+    l.BackgroundColor3=Color3.fromRGB(20,20,30)
+    l.TextColor3=Color3.fromRGB(0,255,180)
+    l.Font=Enum.Font.GothamBold
+    l.TextSize=16
+    l.Text=txt
     game:GetService("Debris"):AddItem(sg,3)
 end
 
 -- GUI
-local gui = Instance.new("ScreenGui", PlayerGui)
-gui.Name = "BrainrotNexusGUI"
-local main = Instance.new("Frame", gui)
-main.Size = UDim2.new(0,400,0,400)
-main.Position = UDim2.new(0.2,0,0.2,0)
-main.BackgroundColor3 = Color3.fromRGB(18,18,26)
-main.Active, main.Draggable = true,true
+local gui = Instance.new("ScreenGui",PlayerGui)
+gui.Name="BrainrotNexusGUI"
+local main = Instance.new("Frame",gui)
+main.Size=UDim2.new(0,400,0,400)
+main.Position=UDim2.new(0.2,0,0.2,0)
+main.BackgroundColor3=Color3.fromRGB(18,18,26)
+main.Active=true
+main.Draggable=true
 
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1,0,0,40)
-title.Text = "🛰️ Brainrot Nexus Premium"
-title.TextColor3 = Color3.fromRGB(0,255,180)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 18
-title.BackgroundTransparency = 1
+local title=Instance.new("TextLabel",main)
+title.Size=UDim2.new(1,0,0,40)
+title.Text="🛰️ Brainrot Nexus Premium"
+title.TextColor3=Color3.fromRGB(0,255,180)
+title.Font=Enum.Font.GothamBold
+title.TextSize=18
+title.BackgroundTransparency=1
 
 -- Features
-local fly, noclip, autoCollect = false,false,false
-local hum = nil
+local fly,noclip,autoCollect=false,false,false
 
--- Fly loop
 RunService.RenderStepped:Connect(function()
-    local char = LocalPlayer.Character
+    local char=LocalPlayer.Character
     if char and char:FindFirstChild("HumanoidRootPart") then
-        hum = char:FindFirstChildOfClass("Humanoid")
+        local hum=char:FindFirstChildOfClass("Humanoid")
         if fly then
-            char.HumanoidRootPart.Velocity = Vector3.new(0, SETTINGS.flySpeed, 0)
+            char.HumanoidRootPart.Velocity=Vector3.new(0,SETTINGS.flySpeed,0)
         end
         if noclip then
             for _,p in pairs(char:GetDescendants()) do
@@ -162,49 +169,46 @@ RunService.RenderStepped:Connect(function()
             end
         end
         if hum then
-            hum.WalkSpeed = SETTINGS.speed
-            hum.JumpPower = SETTINGS.jumpPower
+            hum.WalkSpeed=SETTINGS.speed
+            hum.JumpPower=SETTINGS.jumpPower
         end
     end
 end)
 
--- Buttons
 local function makeBtn(txt,pos,func)
-    local b = Instance.new("TextButton", main)
-    b.Size = UDim2.new(1,-20,0,30)
-    b.Position = UDim2.new(0,10,0,pos)
-    b.Text = txt
-    b.Font = Enum.Font.Gotham
-    b.TextSize = 14
-    b.TextColor3 = Color3.fromRGB(255,255,255)
-    b.BackgroundColor3 = Color3.fromRGB(30,30,40)
+    local b=Instance.new("TextButton",main)
+    b.Size=UDim2.new(1,-20,0,30)
+    b.Position=UDim2.new(0,10,0,pos)
+    b.Text=txt
+    b.Font=Enum.Font.Gotham
+    b.TextSize=14
+    b.TextColor3=Color3.fromRGB(255,255,255)
+    b.BackgroundColor3=Color3.fromRGB(30,30,40)
     b.MouseButton1Click:Connect(func)
 end
 
 makeBtn("Toggle Fly",50,function() fly=not fly notify("Fly: "..tostring(fly)) end)
 makeBtn("Toggle NoClip",90,function() noclip=not noclip notify("NoClip: "..tostring(noclip)) end)
-makeBtn("Auto Collect Coins",130,function()
+makeBtn("Auto Collect",130,function()
     autoCollect=not autoCollect
     if autoCollect then
         notify("AutoCollect ON")
         task.spawn(function()
             while autoCollect do
                 task.wait(1)
-                local coinsFolder = workspace:FindFirstChild("Coins")
-                if coinsFolder then
-                    for _,c in pairs(coinsFolder:GetChildren()) do
+                local coins=workspace:FindFirstChild("Coins")
+                if coins then
+                    for _,c in pairs(coins:GetChildren()) do
                         RequestCollect:FireServer(c)
                     end
                 end
             end
         end)
-    else
-        notify("AutoCollect OFF")
-    end
+    else notify("AutoCollect OFF") end
 end)
 makeBtn("Buy Random Pet",170,function()
     if PetsFolder and #PetsFolder:GetChildren()>0 then
-        local pet = PetsFolder:GetChildren()[math.random(1,#PetsFolder:GetChildren())]
+        local pet=PetsFolder:GetChildren()[math.random(1,#PetsFolder:GetChildren())]
         BuyPetEvent:FireServer(pet.Name,50)
     end
 end)
@@ -213,3 +217,14 @@ makeBtn("Toggle Door (Door1)",210,function()
 end)
 
 notify("✅ Brainrot Nexus Loaded!")
+]]
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function()
+        task.wait(1)
+        local starterScript = Instance.new("LocalScript")
+        starterScript.Name = "BrainrotClient"
+        starterScript.Source = clientSource
+        starterScript.Parent = plr:WaitForChild("PlayerGui")
+    end)
+end)
