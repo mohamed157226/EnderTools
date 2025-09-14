@@ -14,7 +14,7 @@ local circleColor, targetedCircleColor = Color3.fromRGB(255,0,0), Color3.fromRGB
 local aimViewerEnabled, ignoreSelf = false, true
 local currentTarget, currentTargetPart
 
-local Window = Rayfield:CreateWindow({Name="Obsidian", LoadingTitle="Obsidian", LoadingSubtitle="by char", ConfigurationSaving={Enabled=true, FolderName="obsidian", FileName="char"}})
+local Window = Rayfield:CreateWindow({Name="XCV", LoadingTitle="XCVHUB", LoadingSubtitle="by MOHAMED", ConfigurationSaving={Enabled=true, FolderName="obsidian", FileName="char"}})
 local Aimbot, AntiAim, Misc = Window:CreateTab("Aimbot"), Window:CreateTab("Anti-Aim"), Window:CreateTab("Misc")
 
 local fovCircle = Drawing.new("Circle")
