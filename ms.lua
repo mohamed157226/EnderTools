@@ -1,4 +1,3 @@
--- الخدمات والمتغيرات الأساسية
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -263,3 +262,4 @@ RunService.RenderStepped:Connect(function()
         end
     end
 end)
+
