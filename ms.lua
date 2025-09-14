@@ -1,102 +1,767 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
-local HttpService, RunService, TeleportService, players, wrk = game:GetService("HttpService"), game:GetService("RunService"), game:GetService("TeleportService"), game:GetService("Players"), game:GetService("Workspace")
-local plr, hrp, humanoid = players.LocalPlayer, players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart"), players.LocalPlayer.Character:FindFirstChild("Humanoid")
-plr.CharacterAdded:Connect(function(c) hrp = c:WaitForChild("HumanoidRootPart"); humanoid = c:WaitForChild("Humanoid") end)
-if plr.Character then hrp, humanoid = plr.Character:FindFirstChild("HumanoidRootPart"), plr.Character:FindFirstChild("Humanoid") end
-local camera, mouse = wrk.CurrentCamera, plr:GetMouse()
-local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 
-local hue, rainbowFov, rainbowSpeed, aimFov, aimParts, aiming, predictionStrength, smoothing = 0, false, 0.005, 100, {"Head"}, false, 0.065, 0.05
-local aimbotEnabled, wallCheck, stickyAimEnabled, teamCheck, healthCheck, minHealth = false, true, false, false, false, 0
-local antiAim, antiAimAmountX, antiAimAmountY, antiAimAmountZ, antiAimMethod, randomVeloRange = false, 0, -100, 0, "Reset Velo", 100
-local spinBot, spinBotSpeed = false, 20
-local circleColor, targetedCircleColor = Color3.fromRGB(255,0,0), Color3.fromRGB(0,255,0)
-local aimViewerEnabled, ignoreSelf = false, true
-local currentTarget, currentTargetPart
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
-local Window = Rayfield:CreateWindow({Name="XCV", LoadingTitle="XCVHUB", LoadingSubtitle="by MOHAMED", ConfigurationSaving={Enabled=true, FolderName="obsidian", FileName="char"}})
-local Aimbot, AntiAim, Misc = Window:CreateTab("Aimbot"), Window:CreateTab("Anti-Aim"), Window:CreateTab("Misc")
+local Window = Rayfield:CreateWindow({
+   Name = "Saturn Hub (.gg/6UaRDjBY42)",
+   LoadingTitle = "DIG Discontinued Script",
+   LoadingSubtitle = "by JScripter",
+   Icon = 108632720139222,
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "SaturnHub",
+      FileName = "DIG"
+   },
+   Discord = {
+      Enabled = true,
+      Invite = "6UaRDjBY42",
+      RememberJoins = true
+   },
+   KeySystem = false
+})
 
-local fovCircle = Drawing.new("Circle")
-fovCircle.Thickness, fovCircle.Radius, fovCircle.Filled, fovCircle.Color, fovCircle.Visible = 2, aimFov, false, circleColor, false
+-- Variables
+local runningAutoDig = false
+local autoSellAll = false
+local autoSellInterval = 10
+local runningPenguinQuest = false
+local runningBossHit = false
+local selectedCharm = nil
+local infJump = false
+local noclip = false
+local fly = false
+local flySpeed = 50
+local defaultGravity = workspace.Gravity
+local defaultFOV = Camera.FieldOfView
 
-local function checkTeam(p) return teamCheck and p.Team==plr.Team end
-local function checkWall(c) local t=c:FindFirstChild("Head"); if not t then return true end; local r=wrk:Raycast(camera.CFrame.Position,(t.Position-camera.CFrame.Position).unit*(t.Position-camera.CFrame.Position).magnitude,{FilterDescendantsInstances={plr.Character,c}, FilterType=Enum.RaycastFilterType.Blacklist}) return r and r.Instance~=nil end
-local function getClosestPart(c) local cp, scd = nil, aimFov; for _,pn in ipairs(aimParts) do local p=c:FindFirstChild(pn); if p then local sp = camera:WorldToViewportPoint(p.Position); local d = (Vector2.new(sp.X,sp.Y)-Vector2.new(mouse.X,mouse.Y)).Magnitude; if d<scd and sp.Z>0 then cp,scd=p,d end end end return cp end
-local function getTarget() local np, cp, scd=nil,nil,aimFov; for _,p in ipairs(players:GetPlayers()) do if p~=plr and p.Character and not checkTeam(p) and (p.Character.Humanoid.Health>=minHealth or not healthCheck) then local tp=getClosestPart(p.Character); if tp then local sp=camera:WorldToViewportPoint(tp.Position); local d=(Vector2.new(sp.X,sp.Y)-Vector2.new(mouse.X,mouse.Y)).Magnitude; if d<scd and (not wallCheck or not checkWall(p.Character)) then np,tp,scd=p,tp,d end end end end return np,cp end
-local function predict(p,part) return p and part and part.Position + (p.Character.HumanoidRootPart.Velocity*predictionStrength) end
-local function smooth(from,to) return from:Lerp(to,smoothing) end
-local function aimAt(p,part) local pp=predict(p,part); if pp and (p.Character.Humanoid.Health>=minHealth or not healthCheck) then camera.CFrame=smooth(camera.CFrame,CFrame.new(camera.CFrame.Position,pp)) end end
+-- Functions
+local function safeFire(eventPath, ...)
+    local args = {...}
+    local success, err = pcall(function()
+        if eventPath then
+            local event = eventPath()
+            if event then
+                local realArgs = {}
+                for _, v in ipairs(args) do
+                    table.insert(realArgs, (type(v) == "function") and v() or v)
+                end
+                event:FireServer(unpack(realArgs))
+            else
+                error("Event not found")
+            end
+        else
+            local realArgs = {}
+            for _, v in ipairs(args) do
+                if type(v) == "function" then
+                    table.insert(realArgs, v())
+                else
+                    table.insert(realArgs, v)
+                end
+            end
+        end
+    end)
+    if not success then
+        Rayfield:Notify({
+            Title = "Error",
+            Content = tostring(err),
+            Duration = 3,
+            Image = 108632720139222
+        })
+    end
+end
+
+-- Tabs
+local MainTab = Window:CreateTab("Main", "shovel")
+local TeleportTab = Window:CreateTab("Teleport", "door-closed")
+local MovementTab = Window:CreateTab("Movement", "person-standing")
+
+-- Main Tab
+local DigSection = MainTab:CreateSection(" Dig")
+
+local AutoDigToggle = MainTab:CreateToggle({
+   Name = "Auto Dig",
+   CurrentValue = false,
+   Flag = "AutoDig",
+   Callback = function(Value)
+        runningAutoDig = Value
+        if Value then
+            task.spawn(function()
+                while runningAutoDig do
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
+                    task.wait(0.05)
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
+
+                    task.wait(3.5)
+
+                    local vector = Vector3
+                    local finishArgs = {
+                        0,
+                        {
+                            {
+                                Orientation = vector.zero,
+                                Transparency = 1,
+                                Name = "PositionPart",
+                                Position = vector.new(2048.3315, 108.6206, -321.5524),
+                                Color = Color3.fromRGB(163, 162, 165),
+                                Material = Enum.Material.Plastic,
+                                Shape = Enum.PartType.Block,
+                                Size = vector.new(0.1, 0.1, 0.1)
+                            },
+                            {
+                                Orientation = vector.new(0, 90, 90),
+                                Transparency = 0,
+                                Name = "CenterCylinder",
+                                Position = vector.new(2048.3315, 108.5706, -321.5524),
+                                Color = Color3.fromRGB(135, 114, 85),
+                                Material = Enum.Material.Pebble,
+                                Shape = Enum.PartType.Cylinder,
+                                Size = vector.new(0.2, 6.4162, 5.5873)
+                            }
+                        }
+                    }
+
+                    safeFire(function()
+                        return ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Dig_Finished")
+                    end, unpack(finishArgs))
+
+                    local player = game:GetService("Players").LocalPlayer
+                    local backpack = player:WaitForChild("Backpack")
+                    local character = player.Character or player.CharacterAdded:Wait()
+
+                    local validShovelsFolder = ReplicatedStorage:WaitForChild("PlayerItems"):WaitForChild("Shovels")
+                    local validShovelNames = {}
+                    for _, shovel in ipairs(validShovelsFolder:GetChildren()) do
+                        validShovelNames[shovel.Name] = true
+                    end
+
+                    for _, tool in ipairs(character:GetChildren()) do
+                        if tool:IsA("Tool") then
+                            tool.Parent = backpack
+                        end
+                    end
+
+                    task.wait(0)
+
+                    for _, tool in ipairs(backpack:GetChildren()) do
+                        if tool:IsA("Tool") and validShovelNames[tool.Name] then
+                            tool.Parent = character
+                            break
+                        end
+                    end
+
+                    task.wait(0.5)
+                end
+            end)
+        end
+   end,
+})
+
+local SellSection = MainTab:CreateSection(" Sell")
+
+local SellAllButton = MainTab:CreateButton({
+   Name = "Sell All Items",
+   Callback = function()
+        task.spawn(function()
+            local args = {
+                workspace:WaitForChild("World"):WaitForChild("NPCs"):WaitForChild("Rocky")
+            }
+            game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("SellAllItems"):FireServer(unpack(args))
+        end)
+   end,
+})
+
+local AutoSellToggle = MainTab:CreateToggle({
+   Name = "Auto Sell All",
+   CurrentValue = false,
+   Flag = "AutoSellAll",
+   Callback = function(Value)
+        autoSellAll = Value
+        if Value then
+            task.spawn(function()
+                while autoSellAll do
+                    local args = {
+                        workspace:WaitForChild("World"):WaitForChild("NPCs"):WaitForChild("Rocky")
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("SellAllItems"):FireServer(unpack(args))
+                    Rayfield:Notify({
+                        Title = "Auto Sell",
+                        Content = "All items sold.",
+                        Duration = 3,
+                        Image = 108632720139222
+                    })
+                    task.wait(autoSellInterval)
+                end
+            end)
+        end
+   end,
+})
+
+local AutoSellSlider = MainTab:CreateSlider({
+   Name = "Auto Sell Interval (s)",
+   Range = {0, 300},
+   Increment = 1,
+   Suffix = "seconds",
+   CurrentValue = 10,
+   Flag = "AutoSellInterval",
+   Callback = function(Value)
+        autoSellInterval = Value
+   end,
+})
+
+local JournalSection = MainTab:CreateSection(" Journal")
+
+local ClaimJournalsButton = MainTab:CreateButton({
+   Name = "Claim All Journals",
+   Callback = function()
+        local scroller = game:GetService("Players").LocalPlayer.PlayerGui.HUD.Frame.Journal.Scroller
+        local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Journal_Claim")
+
+        local count = 0
+
+        for _, item in ipairs(scroller:GetChildren()) do
+            if item:IsA("TextButton") or item:IsA("ImageButton") then
+                remote:FireServer(item.Name)
+                count += 1
+                task.wait(0)
+            end
+        end
+
+        Rayfield:Notify({
+            Title = "Rescued Journals",
+            Content = "Total: " .. count,
+            Duration = 5,
+            Image = 108632720139222
+        })
+   end,
+})
+
+local CharmsSection = MainTab:CreateSection(" Charms")
+
+local charmInternalNames = {
+    "Controlled Glove",
+    "Lucky Bell",
+    "Blue Coil",
+    "Rock Pounder",
+    "Shoulder Bag",
+    "Vision Goggles"
+}
+
+local charmDisplayToInternal = {}
+local charmDisplayNames = {}
+
+local purchaseablesFolder = workspace:WaitForChild("World"):WaitForChild("Interactive"):WaitForChild("Purchaseable")
+
+for _, model in ipairs(purchaseablesFolder:GetChildren()) do
+    if model:IsA("Model") and model:FindFirstChild("PurchasePrompt") then
+        local prompt = model:FindFirstChild("PurchasePrompt")
+        local displayText = prompt and prompt.ObjectText
+        local internalName = model.Name
+
+        if displayText and table.find(charmInternalNames, internalName) then
+            charmDisplayToInternal[displayText] = internalName
+            table.insert(charmDisplayNames, displayText)
+        end
+    end
+end
+
+local exceptions = {
+    ["Rock Pounder"] = workspace.World.Map["Cinder Isle"]["Fernhill Forest"]:FindFirstChild("Rock Pounder"),
+    ["Shoulder Bag"] = workspace.World.Map["Cinder Isle"]["Fernhill Forest"]:FindFirstChild("Shoulder Bag")
+}
+
+for internalName, model in pairs(exceptions) do
+    if model and model:FindFirstChild("PurchasePrompt") then
+        local prompt = model.PurchasePrompt
+        local displayText = prompt and prompt.ObjectText
+        if displayText then
+            charmDisplayToInternal[displayText] = internalName
+            table.insert(charmDisplayNames, displayText)
+        end
+    end
+end
+
+local function buyCharm(charmName)
+    local success, err = pcall(function()
+        ReplicatedStorage:WaitForChild("DialogueRemotes"):WaitForChild("AttemptBuyCharm"):InvokeServer(charmName)
+    end)
+end
+
+local CharmDropdown = MainTab:CreateDropdown({
+   Name = "Buy Charms",
+   Options = charmDisplayNames,
+   CurrentOption = {"Select Charm"},
+   MultipleOptions = false,
+   Flag = "CharmBuy",
+   Callback = function(Option)
+        local displayName = Option[1]
+        selectedCharm = charmDisplayToInternal[displayName]
+        if selectedCharm then
+            buyCharm(selectedCharm)
+        end
+   end,
+})
+
+local BuyAgainButton = MainTab:CreateButton({
+   Name = "Buy Again",
+   Callback = function()
+        if selectedCharm then
+            buyCharm(selectedCharm)
+        else
+            Rayfield:Notify({
+                Title = "Select a Charm",
+                Content = "You must choose a charm first.",
+                Duration = 3,
+                Image = 108632720139222
+            })
+        end
+   end,
+})
+
+local QuestSection = MainTab:CreateSection(" Quests")
+
+local AutoPizzaToggle = MainTab:CreateToggle({
+   Name = "Auto Pizza Delivery Quest",
+   CurrentValue = false,
+   Flag = "AutoPizzaQuest",
+   Callback = function(Value)
+        runningPenguinQuest = Value
+        if Value then
+            task.spawn(function()
+                while runningPenguinQuest do
+                    local args = { "Pizza Penguin" }
+                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("StartInfiniteQuest"):InvokeServer(unpack(args))
+                    task.wait(1)
+
+                    local penguin = workspace:FindFirstChild("Active") and workspace.Active:FindFirstChild("PizzaCustomers") and workspace.Active.PizzaCustomers:FindFirstChild("Valued Customer") and workspace.Active.PizzaCustomers["Valued Customer"]:FindFirstChild("Penguin")
+                    if penguin and penguin:IsA("Model") and penguin.PrimaryPart then
+                        local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
+                        local hrp = char:WaitForChild("HumanoidRootPart")
+                        hrp.CFrame = penguin.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+                        task.wait(1)
+                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Quest_DeliverPizza"):InvokeServer()
+                    end
+                    task.wait(1)
+
+                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("CompleteInfiniteQuest"):InvokeServer(unpack(args))
+
+                    local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
+                    local hrp = char:WaitForChild("HumanoidRootPart")
+                    hrp.CFrame = CFrame.new(4173, 1193, -4329)
+
+                    task.wait(60)
+                end
+            end)
+        end
+   end,
+})
+
+-- Teleport Tab
+local TeleportSection = TeleportTab:CreateSection(" Teleport")
+
+local EnchantmentButton = TeleportTab:CreateButton({
+   Name = "Teleport to Enchantment Altar",
+   Callback = function()
+        local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
+        local hrp = char:WaitForChild("HumanoidRootPart")
+        hrp.CFrame = CFrame.new(4148, -669, 2551)
+   end,
+})
+
+local MeteorButton = TeleportTab:CreateButton({
+   Name = "Teleport to Meteor",
+   Callback = function()
+        local meteor = workspace:FindFirstChild("Active") and workspace.Active:FindFirstChild("ActiveMeteor")
+        if meteor and meteor:IsA("Model") and meteor.PrimaryPart then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = meteor.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+            Rayfield:Notify({
+                Title = "Teleport",
+                Content = "Teleported to Meteor.",
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Meteor not found.",
+                Duration = 3,
+                Image = 108632720139222
+            })
+        end
+   end,
+})
+
+local MerchantButton = TeleportTab:CreateButton({
+   Name = "Teleport to Traveling Merchant",
+   Callback = function()
+        local merchant = workspace.World.NPCs:FindFirstChild("Merchant Cart")
+        if merchant and merchant:FindFirstChild("Traveling Merchant") and merchant["Traveling Merchant"].PrimaryPart then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = merchant["Traveling Merchant"].PrimaryPart.CFrame + Vector3.new(0, 5, 0)
+            Rayfield:Notify({
+                Title = "Teleport",
+                Content = "Teleported to Traveling Merchant.",
+                Duration = 3,
+                Image = 108632720139222
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Traveling Merchant not found.",
+                Duration = 3,
+                Image = 108632720139222
+            })
+        end
+   end,
+})
+
+-- Spawn Teleports
+local TeleportFolder = workspace:WaitForChild("Spawns"):WaitForChild("TeleportSpawns")
+local teleportNames = {}
+local teleportCoords = {}
+
+for _, part in ipairs(TeleportFolder:GetChildren()) do
+    if part:IsA("BasePart") then
+        table.insert(teleportNames, part.Name)
+        teleportCoords[part.Name] = part.Position
+    end
+end
+
+local SpawnDropdown = TeleportTab:CreateDropdown({
+   Name = "Teleport Spawns",
+   Options = teleportNames,
+   CurrentOption = {"Select Spawn"},
+   MultipleOptions = false,
+   Flag = "SpawnTP",
+   Callback = function(Option)
+        local selected = Option[1]
+        local pos = teleportCoords[selected]
+        if pos then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = CFrame.new(pos)
+        end
+   end,
+})
+
+-- Purchasable Teleports
+local itemNames = {}
+local itemPositions = {}
+
+for _, model in ipairs(purchaseablesFolder:GetChildren()) do
+    if model:IsA("Model") and model.PrimaryPart then
+        local prompt = model:FindFirstChild("PurchasePrompt")
+        if prompt and prompt:IsA("ProximityPrompt") then
+            local objectText = prompt.ObjectText
+            if objectText and objectText ~= "" then
+                table.insert(itemNames, objectText)
+                itemPositions[objectText] = model.PrimaryPart.Position
+            end
+        end
+    end
+end
+
+local PurchasableDropdown = TeleportTab:CreateDropdown({
+   Name = "Teleport to Purchasable",
+   Options = itemNames,
+   CurrentOption = {"Select Item"},
+   MultipleOptions = false,
+   Flag = "PurchasableTP",
+   Callback = function(Option)
+        local selected = Option[1]
+        local pos = itemPositions[selected]
+        if pos then
+            local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = CFrame.new(pos)
+        end
+   end,
+})
+
+-- Boss Teleports
+local bossNames = {
+    "Dire Wolf",
+    "Fuzzball",
+    "Basilisk",
+    "King Crab",
+    "Molten Monstrosity",
+    "Candlelight Phantom",
+    "Giant Spider"
+}
+
+local BossDropdown = TeleportTab:CreateDropdown({
+   Name = "Teleport to Boss",
+   Options = bossNames,
+   CurrentOption = {"Select Boss"},
+   MultipleOptions = false,
+   Flag = "BossTP",
+   Callback = function(Option)
+        local selected = Option[1]
+        local ambience = workspace.World.Zones._Ambience
+        for _, obj in pairs(ambience:GetChildren()) do
+            if obj.Name:sub(1, #selected) == selected then
+                local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    hrp.CFrame = obj.CFrame + Vector3.new(0, 0, 0)
+                end
+                break
+            end
+        end
+   end,
+})
+
+local BossHitToggle = TeleportTab:CreateToggle({
+   Name = "Boss Hit",
+   CurrentValue = false,
+   Flag = "BossHit",
+   Callback = function(Value)
+        runningBossHit = Value
+        if Value then
+            task.spawn(function()
+                while runningBossHit do
+                    local args = {
+                        true
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Dig_Boss_OnHit"):FireServer(unpack(args))
+                    task.wait(0)
+                end
+            end)
+        end
+   end,
+})
+
+-- NPC Teleports
+local npcsFolder = workspace:WaitForChild("World"):WaitForChild("NPCs")
+local npcNames = {}
+local npcPositions = {}
+
+for _, npc in ipairs(npcsFolder:GetChildren()) do
+    if npc:IsA("Model") and npc.PrimaryPart then
+        table.insert(npcNames, npc.Name)
+        npcPositions[npc.Name] = npc.PrimaryPart.Position
+    end
+end
+
+local NPCDropdown = TeleportTab:CreateDropdown({
+   Name = "Teleport to NPC",
+   Options = npcNames,
+   CurrentOption = {"Select NPC"},
+   MultipleOptions = false,
+   Flag = "NPCTP",
+   Callback = function(Option)
+        local selected = Option[1]
+        local pos = npcPositions[selected]
+        if pos then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local hrp = char:WaitForChild("HumanoidRootPart")
+            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
+        end
+   end,
+})
+
+-- Movement Tab
+local MovementSection = MovementTab:CreateSection("Movement")
+
+local WalkspeedSlider = MovementTab:CreateSlider({
+   Name = "Walkspeed",
+   Range = {0, 100},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "Walkspeed",
+   Callback = function(Value)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+            LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+        end
+   end,
+})
+
+local JumpPowerSlider = MovementTab:CreateSlider({
+   Name = "Jump Power",
+   Range = {50, 200},
+   Increment = 1,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "JumpPower",
+   Callback = function(Value)
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+            LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = Value
+        end
+   end,
+})
+
+local GravitySlider = MovementTab:CreateSlider({
+   Name = "Gravity",
+   Range = {0, 999},
+   Increment = 1,
+   Suffix = "Gravity",
+   CurrentValue = workspace.Gravity,
+   Flag = "Gravity",
+   Callback = function(Value)
+        workspace.Gravity = Value
+   end,
+})
+
+local FOVSlider = MovementTab:CreateSlider({
+   Name = "FOV",
+   Range = {20, 120},
+   Increment = 1,
+   Suffix = "FOV",
+   CurrentValue = Camera.FieldOfView,
+   Flag = "FOV",
+   Callback = function(Value)
+        Camera.FieldOfView = Value
+   end,
+})
+
+local InfJumpToggle = MovementTab:CreateToggle({
+   Name = "Infinite Jump",
+   CurrentValue = false,
+   Flag = "InfJump",
+   Callback = function(Value)
+        infJump = Value
+   end,
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if infJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+    end
+end)
+
+local NoclipToggle = MovementTab:CreateToggle({
+   Name = "Noclip",
+   CurrentValue = false,
+   Flag = "Noclip",
+   Callback = function(Value)
+        noclip = Value
+   end,
+})
+
+RunService.Stepped:Connect(function()
+    if noclip and LocalPlayer.Character then
+        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+local FlySpeedSlider = MovementTab:CreateSlider({
+   Name = "Fly Speed",
+   Range = {10, 999},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 50,
+   Flag = "FlySpeed",
+   Callback = function(Value)
+        flySpeed = Value
+   end,
+})
+
+local FlyToggle = MovementTab:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Flag = "Fly",
+   Callback = function(Value)
+        fly = Value
+   end,
+})
 
 RunService.RenderStepped:Connect(function()
-    if aimbotEnabled then
-        fovCircle.Position = Vector2.new(mouse.X, mouse.Y + 50)
-        fovCircle.Color = rainbowFov and Color3.fromHSV((hue+hue+rainbowSpeed)%1,1,1) or (aiming and currentTarget and targetedCircleColor or circleColor)
-        if rainbowFov then hue=(hue+rainbowSpeed)%1 end
-        if aiming then
-            if stickyAimEnabled and currentTarget then
-                local sp=camera:WorldToViewportPoint(currentTarget.Character.Head.Position); if (Vector2.new(sp.X,sp.Y)-Vector2.new(mouse.X,mouse.Y)).Magnitude>aimFov or (wallCheck and checkWall(currentTarget.Character)) or checkTeam(currentTarget) then currentTarget=nil end
-            end
-            if not stickyAimEnabled or not currentTarget then currentTarget,currentTargetPart=getTarget() end
-            if currentTarget and currentTargetPart then aimAt(currentTarget,currentTargetPart) end
-        else currentTarget=nil end
+    if fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = LocalPlayer.Character.HumanoidRootPart
+        local direction = Vector3.zero
+
+        if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction += Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction -= Camera.CFrame.LookVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction -= Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction += Camera.CFrame.RightVector end
+        if UserInputService:IsKeyDown(Enum.KeyCode.E) then direction += Vector3.new(0, 1, 0) end
+        if UserInputService:IsKeyDown(Enum.KeyCode.Q) then direction -= Vector3.new(0, 1, 0) end
+
+        hrp.Velocity = direction * flySpeed
     end
 end)
 
-RunService.Heartbeat:Connect(function()
-    if antiAim then
-        if antiAimMethod=="Reset Velo" then local v=hrp.Velocity; hrp.Velocity=Vector3.new(antiAimAmountX,antiAimAmountY,antiAimAmountZ); RunService.RenderStepped:Wait(); hrp.Velocity=v
-        elseif antiAimMethod=="Reset Pos [BROKEN]" then local p=hrp.CFrame; hrp.Velocity=Vector3.new(antiAimAmountX,antiAimAmountY,antiAimAmountZ); RunService.RenderStepped:Wait(); hrp.CFrame=p
-        elseif antiAimMethod=="Random Velo" then local v=hrp.Velocity; hrp.Velocity=Vector3.new(math.random(-randomVeloRange,randomVeloRange),math.random(-randomVeloRange,randomVeloRange),math.random(-randomVeloRange,randomVeloRange)); RunService.RenderStepped:Wait(); hrp.Velocity=v end
+local ResetButton = MovementTab:CreateButton({
+   Name = "Reset Player",
+   Callback = function()
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+            local h = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            h.WalkSpeed = 16
+            h.JumpPower = 50
+            workspace.Gravity = defaultGravity
+            Camera.FieldOfView = defaultFOV
+        end
+   end,
+})
+
+-- Player Teleport
+local PlayerSection = MovementTab:CreateSection("Player Teleport")
+
+local function getPlayers()
+    local t = {}
+    for _,p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then table.insert(t, p.Name) end
     end
-end)
+    return t
+end
 
-mouse.Button2Down:Connect(function() if aimbotEnabled then aiming=true end end)
-mouse.Button2Up:Connect(function() if aimbotEnabled then aiming=false end end)
+local PlayerDropdown = MovementTab:CreateDropdown({
+   Name = "Teleport to Player",
+   Options = getPlayers(),
+   CurrentOption = {"Select Player"},
+   MultipleOptions = false,
+   Flag = "PlayerTP",
+   Callback = function(Option)
+        local v = Option[1]
+        local target = Players:FindFirstChild(v)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            char:WaitForChild("HumanoidRootPart").CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
+            Rayfield:Notify({
+                Title = "Teleport",
+                Content = "Teleported to " .. v,
+                Duration = 3,
+                Image = 108632720139222
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Player not found.",
+                Duration = 3,
+                Image = 108632720139222
+            })
+        end
+   end,
+})
 
-local function CreateToggle(tab,name,flag,cb,def) tab:CreateToggle({Name=name,CurrentValue=def or false,Flag=flag,Callback=cb}) end
-local function CreateSlider(tab,name,range,inc,cur,flag,cb) tab:CreateSlider({Name=name,Range=range,Increment=inc,CurrentValue=cur,Flag=flag,Callback=cb}) end
-local function CreateDropdown(tab,name,opt,cur,flag,cb) tab:CreateDropdown({Name=name,Options=opt,CurrentOption=cur,Flag=flag,Callback=cb}) end
-local function CreateColor(tab,name,col,cb) tab:CreateColorPicker({Name=name,Color=col,Callback=cb}) end
+local RefreshPlayersButton = MovementTab:CreateButton({
+   Name = "Refresh Player List",
+   Callback = function()
+        PlayerDropdown:Refresh(getPlayers())
+        Rayfield:Notify({
+            Title = "Player List",
+            Content = "Player list has been updated.",
+            Duration = 2,
+            Image = 108632720139222
+        })
+   end,
+})
 
-CreateToggle(Aimbot,"Aimbot","Aimbot",function(v) aimbotEnabled=v; fovCircle.Visible=v end,false)
-CreateDropdown(Aimbot,"Aim Part",{"Head","HumanoidRootPart","Left Arm","Right Arm","Torso","Left Leg","Right Leg"},{"Head"}, "AimPart",function(opt) aimParts=opt end)
-CreateSlider(Aimbot,"Smoothing",{0,100},1,5,"Smoothing",function(v) smoothing=1-(v/100) end)
-CreateSlider(Aimbot,"Prediction Strength",{0,0.2},0.001,0.065,"PredictionStrength",function(v) predictionStrength=v end)
-CreateToggle(Aimbot,"Fov Visibility","FovVisibility",function(v) fovCircle.Visible=v end,true)
-CreateSlider(Aimbot,"Aimbot Fov",{0,1000},1,100,"AimbotFov",function(v) aimFov=v; fovCircle.Radius=v end)
-CreateToggle(Aimbot,"Wall Check","WallCheck",function(v) wallCheck=v end,true)
-CreateToggle(Aimbot,"Sticky Aim","StickyAim",function(v) stickyAimEnabled=v end,false)
-CreateToggle(Aimbot,"Team Check","TeamCheck",function(v) teamCheck=v end,false)
-CreateToggle(Aimbot,"Health Check","HealthCheck",function(v) healthCheck=v end,false)
-CreateSlider(Aimbot,"Min Health",{0,100},1,0,"MinHealth",function(v) minHealth=v end)
-CreateColor(Aimbot,"Fov Color",circleColor,function(c) circleColor=c; fovCircle.Color=c end)
-CreateColor(Aimbot,"Targeted Fov Color",targetedCircleColor,function(c) targetedCircleColor=c end)
-CreateToggle(Aimbot,"Rainbow Fov","RainbowFov",function(v) rainbowFov=v end,false)
-
-CreateToggle(AntiAim,"Anti-Aim","AntiAim",function(v) antiAim=v; Rayfield:Notify({Title="Anti-Aim",Content=v and "Enabled!" or "Disabled!",Duration=1,Image=4483362458}) end,false)
-CreateDropdown(AntiAim,"Anti-Aim Method",{"Reset Velo","Random Velo","Reset Pos [BROKEN]"},"Reset Velo","AntiAimMethod",function(opt) antiAimMethod=type(opt)=="table" and opt[1] or opt end)
-CreateSlider(AntiAim,"Anti-Aim Amount X",{-1000,1000},10,0,"AntiAimAmountX",function(v) antiAimAmountX=v end)
-CreateSlider(AntiAim,"Anti-Aim Amount Y",{-1000,1000},10,-100,"AntiAimAmountY",function(v) antiAimAmountY=v end)
-CreateSlider(AntiAim,"Anti-Aim Amount Z",{-1000,1000},10,0,"AntiAimAmountZ",function(v) antiAimAmountZ=v end)
-CreateSlider(AntiAim,"Random Velo Range",{0,1000},10,100,"RandomVeloRange",function(v) randomVeloRange=v end)
-
-CreateToggle(Misc,"Spin-Bot","SpinBot",function(v)
-    spinBot=v; for _,c in pairs(hrp:GetChildren()) do if c.Name=="Spinning" then c:Destroy() end end
-    plr.Character.Humanoid.AutoRotate=not v
-    if v then local s=Instance.new("BodyAngularVelocity"); s.Name="Spinning"; s.Parent=hrp; s.MaxTorque=Vector3.new(0,math.huge,0); s.AngularVelocity=Vector3.new(0,spinBotSpeed,0); Rayfield:Notify({Title="Spin Bot",Content="Enabled!",Duration=1,Image=4483362458}) else Rayfield:Notify({Title="Spin Bot",Content="Disabled!",Duration=1,Image=4483362458}) end
-end,false)
-
-CreateSlider(Misc,"Spin-Bot Speed",{0,1000},1,20,"SpinBotSpeed",function(v)
-    spinBotSpeed=v
-    if spinBot then for _,c in pairs(hrp:GetChildren()) do if c.Name=="Spinning" then c:Destroy() end end; local s=Instance.new("BodyAngularVelocity"); s.Name="Spinning"; s.Parent=hrp; s.MaxTorque=Vector3.new(0,math.huge,0); s.AngularVelocity=Vector3.new(0,v,0) end
-end)
-
-Misc:CreateButton({Name="Server Hop", Callback=function()
-    if httprequest then
-        local servers={}
-        local body=HttpService:JSONDecode(httprequest({Url=string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true",game.PlaceId)}).Body)
-        if body and body.data then for _,v in next,body.data do if type(v)=="table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.playing<v.maxPlayers and v.id~=game.JobId then table.insert(servers,1,v.id) end end end
-        if #servers>0 then TeleportService:TeleportToPlaceInstance(game.PlaceId,servers[math.random(1,#servers)],plr) else Rayfield:Notify({Title="Server Hop",Content="Couldn't find a valid server!!!",Duration=1,Image=4483362458}) end
-    else Rayfield:Notify({Title="Server Hop",Content="Your executor is ass!",Duration=1,Image=4483362458}) end
-end})
+Rayfield:Notify({
+    Title = "Saturn Hub",
+    Content = "DIG loaded successfully!",
+    Duration = 5,
+    Image = 108632720139222
+})
