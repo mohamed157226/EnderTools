@@ -1,767 +1,962 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- OPEN SOURCE ESP BY 4LAYY <3
+-- BOX ESP, CHAMS, TRACERS, SKELETON, HEALTH BAR, NAMES
+-- MOBILE SUPPORTED
 
+-- SERVICES
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local LocalPlayer = Players.LocalPlayer
-local Camera = workspace.CurrentCamera
+local StarterGui = game:GetService("StarterGui")
+local CoreGui = game:GetService("CoreGui")
 
-local Window = Rayfield:CreateWindow({
-   Name = "Saturn Hub (.gg/6UaRDjBY42)",
-   LoadingTitle = "DIG Discontinued Script",
-   LoadingSubtitle = "by JScripter",
-   Icon = 108632720139222,
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "SaturnHub",
-      FileName = "DIG"
-   },
-   Discord = {
-      Enabled = true,
-      Invite = "6UaRDjBY42",
-      RememberJoins = true
-   },
-   KeySystem = false
-})
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
 
--- Variables
-local runningAutoDig = false
-local autoSellAll = false
-local autoSellInterval = 10
-local runningPenguinQuest = false
-local runningBossHit = false
-local selectedCharm = nil
-local infJump = false
-local noclip = false
-local fly = false
-local flySpeed = 50
-local defaultGravity = workspace.Gravity
-local defaultFOV = Camera.FieldOfView
+-- VARIABLES
+local boxes = {}
+local highlights = {}
+local beamTracers = {}
+local skeletons = {}
+local healthBars = {}
+local nameLabels = {}
 
--- Functions
-local function safeFire(eventPath, ...)
-    local args = {...}
-    local success, err = pcall(function()
-        if eventPath then
-            local event = eventPath()
-            if event then
-                local realArgs = {}
-                for _, v in ipairs(args) do
-                    table.insert(realArgs, (type(v) == "function") and v() or v)
-                end
-                event:FireServer(unpack(realArgs))
+local boxESPEnabled = false
+local chamsEnabled = false
+local tracerEnabled = false
+local skeletonEnabled = false
+local healthBarEnabled = false
+local nameESPEnabled = false
+local teamFilterEnabled = false
+
+local boxConnection
+local chamsUpdateConnection
+local tracerConnection
+local skeletonConnection
+local healthBarConnection
+local nameESPConnection
+
+-- HELPER FUNCTIONS
+local function getPlayerColor(plr)
+    local teamColor = (plr.Team and plr.Team.TeamColor.Color) or Color3.fromRGB(0, 255, 0)
+    if teamColor == Color3.new(1, 1, 1) then
+        teamColor = Color3.fromRGB(0, 255, 0)
+    end
+    return teamColor
+end
+
+-- TEAM FILTER CHECK
+local function shouldShowPlayer(plr)
+    if not teamFilterEnabled then
+        return true
+    end
+    
+    if player.Team and plr.Team then
+        return player.Team ~= plr.Team
+    else
+        return true
+    end
+end
+
+-- BOX ESP FUNCTIONS
+local function createBox()
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = Color3.fromRGB(0, 255, 0)
+    box.Thickness = 2
+    box.Transparency = 1
+    box.Filled = false
+    return box
+end
+
+-- CHAMS FUNCTIONS
+local function addHighlight(plr)
+    if highlights[plr] then return end
+    if not plr.Character or not plr.Character.Parent then return end
+    if not shouldShowPlayer(plr) then return end
+    
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "ESPHighlight"
+    highlight.Adornee = plr.Character
+    highlight.FillColor = getPlayerColor(plr)
+    highlight.OutlineColor = Color3.new(0, 0, 0)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Parent = player:FindFirstChildOfClass("PlayerGui") or CoreGui
+    highlights[plr] = highlight
+end
+
+local function removeHighlight(plr)
+    if highlights[plr] then
+        highlights[plr]:Destroy()
+        highlights[plr] = nil
+    end
+end
+
+-- TRACER FUNCTIONS
+local function createBeam(plr)
+    if beamTracers[plr] then
+        local oldData = beamTracers[plr]
+        if oldData.Beam then
+            oldData.Beam.Enabled = false
+            oldData.Beam:Destroy()
+        end
+        if oldData.Attachment0 then oldData.Attachment0:Destroy() end
+        if oldData.Attachment1 then oldData.Attachment1:Destroy() end
+        beamTracers[plr] = nil
+    end
+
+    local character = plr.Character
+    if not character then return nil end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local localHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp or not localHRP then return nil end
+    if not shouldShowPlayer(plr) then return nil end
+
+    local beamData = {}
+
+    local att0 = Instance.new("Attachment")
+    att0.Name = "ESPAttachment0"
+    att0.Parent = localHRP
+
+    local att1 = Instance.new("Attachment")
+    att1.Name = "ESPAttachment1"
+    att1.Parent = hrp
+
+    local beam = Instance.new("Beam")
+    beam.Name = "ESPBeam"
+    beam.Attachment0 = att0
+    beam.Attachment1 = att1
+    beam.FaceCamera = true
+    beam.Width0 = 0.05
+    beam.Width1 = 0.05
+    beam.Color = ColorSequence.new(getPlayerColor(plr))
+    beam.Transparency = NumberSequence.new(0)
+    beam.Enabled = false
+    beam.Parent = workspace
+
+    beamData.Attachment0 = att0
+    beamData.Attachment1 = att1
+    beamData.Beam = beam
+
+    beamTracers[plr] = beamData
+    return beamData
+end
+
+-- SKELETON FUNCTIONS
+local function createSkeletonLine()
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Color = Color3.fromRGB(255, 255, 255)
+    line.Thickness = 2
+    line.Transparency = 1
+    return line
+end
+
+local function createSkeleton(plr)
+    if skeletons[plr] then
+        for _, line in pairs(skeletons[plr]) do
+            line:Remove()
+        end
+    end
+    
+    skeletons[plr] = {}
+    
+    local connections = {
+        "Head-UpperTorso", "UpperTorso-LowerTorso", 
+        "UpperTorso-LeftUpperArm", "LeftUpperArm-LeftLowerArm", "LeftLowerArm-LeftHand",
+        "UpperTorso-RightUpperArm", "RightUpperArm-RightLowerArm", "RightLowerArm-RightHand",
+        "LowerTorso-LeftUpperLeg", "LeftUpperLeg-LeftLowerLeg", "LeftLowerLeg-LeftFoot",
+        "LowerTorso-RightUpperLeg", "RightUpperLeg-RightLowerLeg", "RightLowerLeg-RightFoot"
+    }
+    
+    for _, connection in pairs(connections) do
+        skeletons[plr][connection] = createSkeletonLine()
+    end
+end
+
+local function updateSkeleton(plr)
+    local character = plr.Character
+    if not character or not skeletons[plr] then return end
+    if not shouldShowPlayer(plr) then
+        for _, line in pairs(skeletons[plr]) do
+            line.Visible = false
+        end
+        return
+    end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    if not humanoid or humanoid.RigType ~= Enum.HumanoidRigType.R15 then 
+        for _, line in pairs(skeletons[plr]) do
+            line.Visible = false
+        end
+        return 
+    end
+    
+    local parts = {
+        Head = character:FindFirstChild("Head"),
+        UpperTorso = character:FindFirstChild("UpperTorso"),
+        LowerTorso = character:FindFirstChild("LowerTorso"),
+        LeftUpperArm = character:FindFirstChild("LeftUpperArm"),
+        LeftLowerArm = character:FindFirstChild("LeftLowerArm"),
+        LeftHand = character:FindFirstChild("LeftHand"),
+        RightUpperArm = character:FindFirstChild("RightUpperArm"),
+        RightLowerArm = character:FindFirstChild("RightLowerArm"),
+        RightHand = character:FindFirstChild("RightHand"),
+        LeftUpperLeg = character:FindFirstChild("LeftUpperLeg"),
+        LeftLowerLeg = character:FindFirstChild("LeftLowerLeg"),
+        LeftFoot = character:FindFirstChild("LeftFoot"),
+        RightUpperLeg = character:FindFirstChild("RightUpperLeg"),
+        RightLowerLeg = character:FindFirstChild("RightLowerLeg"),
+        RightFoot = character:FindFirstChild("RightFoot")
+    }
+    
+    local connections = {
+        {"Head-UpperTorso", parts.Head, parts.UpperTorso},
+        {"UpperTorso-LowerTorso", parts.UpperTorso, parts.LowerTorso},
+        {"UpperTorso-LeftUpperArm", parts.UpperTorso, parts.LeftUpperArm},
+        {"LeftUpperArm-LeftLowerArm", parts.LeftUpperArm, parts.LeftLowerArm},
+        {"LeftLowerArm-LeftHand", parts.LeftLowerArm, parts.LeftHand},
+        {"UpperTorso-RightUpperArm", parts.UpperTorso, parts.RightUpperArm},
+        {"RightUpperArm-RightLowerArm", parts.RightUpperArm, parts.RightLowerArm},
+        {"RightLowerArm-RightHand", parts.RightLowerArm, parts.RightHand},
+        {"LowerTorso-LeftUpperLeg", parts.LowerTorso, parts.LeftUpperLeg},
+        {"LeftUpperLeg-LeftLowerLeg", parts.LeftUpperLeg, parts.LeftLowerLeg},
+        {"LeftLowerLeg-LeftFoot", parts.LeftLowerLeg, parts.LeftFoot},
+        {"LowerTorso-RightUpperLeg", parts.LowerTorso, parts.RightUpperLeg},
+        {"RightUpperLeg-RightLowerLeg", parts.RightUpperLeg, parts.RightLowerLeg},
+        {"RightLowerLeg-RightFoot", parts.RightLowerLeg, parts.RightFoot}
+    }
+    
+    for _, connection in pairs(connections) do
+        local name, part1, part2 = connection[1], connection[2], connection[3]
+        local line = skeletons[plr][name]
+        
+        if part1 and part2 and line then
+            local pos1, onScreen1 = camera:WorldToViewportPoint(part1.Position)
+            local pos2, onScreen2 = camera:WorldToViewportPoint(part2.Position)
+            
+            if onScreen1 and onScreen2 then
+                line.From = Vector2.new(pos1.X, pos1.Y)
+                line.To = Vector2.new(pos2.X, pos2.Y)
+                line.Color = getPlayerColor(plr)
+                line.Visible = true
             else
-                error("Event not found")
+                line.Visible = false
             end
         else
-            local realArgs = {}
-            for _, v in ipairs(args) do
-                if type(v) == "function" then
-                    table.insert(realArgs, v())
+            line.Visible = false
+        end
+    end
+end
+
+local function removeSkeleton(plr)
+    if skeletons[plr] then
+        for _, line in pairs(skeletons[plr]) do
+            line:Remove()
+        end
+        skeletons[plr] = nil
+    end
+end
+
+-- HEALTH BAR FUNCTIONS
+local function createHealthBar()
+    local healthBar = {}
+    
+    healthBar.background = Drawing.new("Square")
+    healthBar.background.Visible = false
+    healthBar.background.Color = Color3.fromRGB(0, 0, 0)
+    healthBar.background.Thickness = 1
+    healthBar.background.Transparency = 1
+    healthBar.background.Filled = true
+    
+    healthBar.health = Drawing.new("Square")
+    healthBar.health.Visible = false
+    healthBar.health.Color = Color3.fromRGB(0, 255, 0)
+    healthBar.health.Thickness = 1
+    healthBar.health.Transparency = 1
+    healthBar.health.Filled = true
+    
+    return healthBar
+end
+
+local function updateHealthBar(plr)
+    local character = plr.Character
+    if not character or not healthBars[plr] then return end
+    if not shouldShowPlayer(plr) then
+        healthBars[plr].background.Visible = false
+        healthBars[plr].health.Visible = false
+        return
+    end
+    
+    local humanoid = character:FindFirstChild("Humanoid")
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not hrp then 
+        healthBars[plr].background.Visible = false
+        healthBars[plr].health.Visible = false
+        return 
+    end
+    
+    local rootPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+    if not onScreen then
+        healthBars[plr].background.Visible = false
+        healthBars[plr].health.Visible = false
+        return
+    end
+    
+    local distance = math.clamp(rootPos.Z, 0.1, 1000)
+    local barHeight = (600 / distance) * 1.3
+    local barWidth = 6
+    local backgroundWidth = 8
+    
+    local barX = rootPos.X - (barHeight * 1.0 / 2) - backgroundWidth - 10
+    local barY = rootPos.Y - barHeight / 2
+    
+    healthBars[plr].background.Size = Vector2.new(backgroundWidth, barHeight + 2)
+    healthBars[plr].background.Position = Vector2.new(barX - 1, barY - 1)
+    healthBars[plr].background.Visible = true
+    
+    local healthPercent = math.clamp(humanoid.Health / humanoid.MaxHealth, 0, 1)
+    
+    if healthPercent <= 0 then
+        healthBars[plr].health.Visible = false
+    else
+        local healthBarHeight = barHeight * healthPercent
+        
+        healthBars[plr].health.Size = Vector2.new(barWidth, healthBarHeight)
+        healthBars[plr].health.Position = Vector2.new(barX, barY + (barHeight - healthBarHeight))
+        healthBars[plr].health.Visible = true
+        
+        if healthPercent > 0.6 then
+            healthBars[plr].health.Color = Color3.fromRGB(0, 255, 0)
+        elseif healthPercent > 0.3 then
+            healthBars[plr].health.Color = Color3.fromRGB(255, 255, 0)
+        else
+            healthBars[plr].health.Color = Color3.fromRGB(255, 0, 0)
+        end
+    end
+end
+
+local function removeHealthBar(plr)
+    if healthBars[plr] then
+        healthBars[plr].background:Remove()
+        healthBars[plr].health:Remove()
+        healthBars[plr] = nil
+    end
+end
+
+-- NAME ESP FUNCTIONS
+local function createNameLabel()
+    local nameLabel = Drawing.new("Text")
+    nameLabel.Visible = false
+    nameLabel.Color = Color3.fromRGB(255, 255, 255)
+    nameLabel.Size = 16
+    nameLabel.Center = true
+    nameLabel.Outline = true
+    nameLabel.OutlineColor = Color3.fromRGB(0, 0, 0)
+    nameLabel.Font = Drawing.Fonts.UI
+    nameLabel.Transparency = 1
+    return nameLabel
+end
+
+local function updateNameLabel(plr)
+    local character = plr.Character
+    if not character or not nameLabels[plr] then return end
+    if not shouldShowPlayer(plr) then
+        nameLabels[plr].Visible = false
+        return
+    end
+    
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then 
+        nameLabels[plr].Visible = false
+        return 
+    end
+    
+    local rootPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+    if not onScreen then
+        nameLabels[plr].Visible = false
+        return
+    end
+    
+    local distance = math.clamp(rootPos.Z, 0.1, 1000)
+    local nameHeight = (600 / distance) * 1.3
+    
+    local nameX = rootPos.X
+    local nameY = rootPos.Y - nameHeight / 2 - 20
+    
+    nameLabels[plr].Position = Vector2.new(nameX, nameY)
+    nameLabels[plr].Text = plr.Name
+    nameLabels[plr].Color = getPlayerColor(plr)
+    nameLabels[plr].Visible = true
+end
+
+local function removeNameLabel(plr)
+    if nameLabels[plr] then
+        nameLabels[plr]:Remove()
+        nameLabels[plr] = nil
+    end
+end
+
+-- ESP UPDATE FUNCTIONS
+local function updateBoxes()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and plr ~= player then
+            if not shouldShowPlayer(plr) then
+                if boxes[plr] then
+                    boxes[plr].Visible = false
+                end
+                continue
+            end
+            
+            local hrp = plr.Character.HumanoidRootPart
+            local box = boxes[plr]
+            if not box then
+                box = createBox()
+                boxes[plr] = box
+            end
+
+            box.Color = getPlayerColor(plr)
+
+            local rootPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+            local distance = math.clamp(rootPos.Z, 0.1, 1000)
+
+            if onScreen then
+                local sizeY = (1500 / distance) * 1.3
+                local sizeX = sizeY * 1.0
+
+                box.Size = Vector2.new(sizeX, sizeY)
+                box.Position = Vector2.new(rootPos.X - sizeX / 2, rootPos.Y - sizeY / 2)
+                box.Visible = true
+
+                local velocity = hrp.Velocity
+                local speed = velocity.Magnitude
+                if speed > 1 then
+                    box.Thickness = 2 + math.clamp(speed / 50, 0, 3)
                 else
-                    table.insert(realArgs, v)
+                    box.Thickness = 2
                 end
+            else
+                box.Visible = false
+            end
+        else
+            if boxes[plr] then
+                boxes[plr].Visible = false
             end
         end
-    end)
-    if not success then
-        Rayfield:Notify({
-            Title = "Error",
-            Content = tostring(err),
-            Duration = 3,
-            Image = 108632720139222
-        })
     end
 end
 
--- Tabs
-local MainTab = Window:CreateTab("Main", "shovel")
-local TeleportTab = Window:CreateTab("Teleport", "door-closed")
-local MovementTab = Window:CreateTab("Movement", "person-standing")
-
--- Main Tab
-local DigSection = MainTab:CreateSection(" Dig")
-
-local AutoDigToggle = MainTab:CreateToggle({
-   Name = "Auto Dig",
-   CurrentValue = false,
-   Flag = "AutoDig",
-   Callback = function(Value)
-        runningAutoDig = Value
-        if Value then
-            task.spawn(function()
-                while runningAutoDig do
-                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
-                    task.wait(0.05)
-                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-
-                    task.wait(3.5)
-
-                    local vector = Vector3
-                    local finishArgs = {
-                        0,
-                        {
-                            {
-                                Orientation = vector.zero,
-                                Transparency = 1,
-                                Name = "PositionPart",
-                                Position = vector.new(2048.3315, 108.6206, -321.5524),
-                                Color = Color3.fromRGB(163, 162, 165),
-                                Material = Enum.Material.Plastic,
-                                Shape = Enum.PartType.Block,
-                                Size = vector.new(0.1, 0.1, 0.1)
-                            },
-                            {
-                                Orientation = vector.new(0, 90, 90),
-                                Transparency = 0,
-                                Name = "CenterCylinder",
-                                Position = vector.new(2048.3315, 108.5706, -321.5524),
-                                Color = Color3.fromRGB(135, 114, 85),
-                                Material = Enum.Material.Pebble,
-                                Shape = Enum.PartType.Cylinder,
-                                Size = vector.new(0.2, 6.4162, 5.5873)
-                            }
-                        }
-                    }
-
-                    safeFire(function()
-                        return ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Dig_Finished")
-                    end, unpack(finishArgs))
-
-                    local player = game:GetService("Players").LocalPlayer
-                    local backpack = player:WaitForChild("Backpack")
-                    local character = player.Character or player.CharacterAdded:Wait()
-
-                    local validShovelsFolder = ReplicatedStorage:WaitForChild("PlayerItems"):WaitForChild("Shovels")
-                    local validShovelNames = {}
-                    for _, shovel in ipairs(validShovelsFolder:GetChildren()) do
-                        validShovelNames[shovel.Name] = true
-                    end
-
-                    for _, tool in ipairs(character:GetChildren()) do
-                        if tool:IsA("Tool") then
-                            tool.Parent = backpack
-                        end
-                    end
-
-                    task.wait(0)
-
-                    for _, tool in ipairs(backpack:GetChildren()) do
-                        if tool:IsA("Tool") and validShovelNames[tool.Name] then
-                            tool.Parent = character
-                            break
-                        end
-                    end
-
-                    task.wait(0.5)
-                end
-            end)
+local function updateAllHighlights()
+    for plr, highlight in pairs(highlights) do
+        if not shouldShowPlayer(plr) then
+            removeHighlight(plr)
+            continue
         end
-   end,
-})
+        
+        if plr.Character and plr.Character.Parent then
+            highlight.Adornee = plr.Character
+            highlight.FillColor = getPlayerColor(plr)
+        else
+            removeHighlight(plr)
+        end
+    end
+end
 
-local SellSection = MainTab:CreateSection(" Sell")
+local function updateTracers()
+    local localHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not localHRP then
+        for _, data in pairs(beamTracers) do
+            if data.Beam then data.Beam.Enabled = false end
+        end
+        return
+    end
 
-local SellAllButton = MainTab:CreateButton({
-   Name = "Sell All Items",
-   Callback = function()
-        task.spawn(function()
-            local args = {
-                workspace:WaitForChild("World"):WaitForChild("NPCs"):WaitForChild("Rocky")
-            }
-            game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("SellAllItems"):FireServer(unpack(args))
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            if not shouldShowPlayer(plr) then
+                if beamTracers[plr] and beamTracers[plr].Beam then
+                    beamTracers[plr].Beam.Enabled = false
+                end
+                continue
+            end
+            
+            local targetHRP = plr.Character.HumanoidRootPart
+
+            local beamData = beamTracers[plr]
+            if not beamData then
+                beamData = createBeam(plr)
+            end
+            if not beamData then continue end
+
+            beamData.Attachment0.WorldPosition = localHRP.Position
+            beamData.Attachment1.WorldPosition = targetHRP.Position
+
+            beamData.Beam.Color = ColorSequence.new(getPlayerColor(plr))
+            beamData.Beam.Enabled = true
+        else
+            if beamTracers[plr] and beamTracers[plr].Beam then
+                beamTracers[plr].Beam.Enabled = false
+            end
+        end
+    end
+end
+
+local function updateSkeletons()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            if not skeletons[plr] then
+                createSkeleton(plr)
+            end
+            updateSkeleton(plr)
+        end
+    end
+end
+
+local function updateHealthBars()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            if not healthBars[plr] then
+                healthBars[plr] = createHealthBar()
+            end
+            updateHealthBar(plr)
+        else
+            if healthBars[plr] then
+                healthBars[plr].background.Visible = false
+                healthBars[plr].health.Visible = false
+            end
+        end
+    end
+end
+
+local function updateNameESP()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            if not nameLabels[plr] then
+                nameLabels[plr] = createNameLabel()
+            end
+            updateNameLabel(plr)
+        else
+            if nameLabels[plr] then
+                nameLabels[plr].Visible = false
+            end
+        end
+    end
+end
+
+-- GUI SETUP
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ESP_UI_4layy"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BorderSizePixel = 0
+MainFrame.Size = UDim2.new(0, 250, 0, 340)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.ClipsDescendants = true
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 28)
+
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "4layy's ESP UI"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 18
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.RichText = false
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Parent = TopBar
+MinimizeBtn.Size = UDim2.new(0, 30, 1, 0)
+MinimizeBtn.Position = UDim2.new(1, -30, 0, 0)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+MinimizeBtn.BorderSizePixel = 0
+MinimizeBtn.Font = Enum.Font.SourceSansBold
+MinimizeBtn.Text = "-"
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.TextSize = 22
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Name = "ScrollFrame"
+ScrollFrame.Parent = MainFrame
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.Position = UDim2.new(0, 10, 0, 35)
+ScrollFrame.Size = UDim2.new(1, -20, 1, -45)
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 280)
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+
+-- BUTTON CREATION
+local function createButton(text)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 35)
+    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    btn.BorderSizePixel = 0
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 16
+    btn.Text = text
+    btn.AutoButtonColor = true
+    btn.Parent = ScrollFrame
+    return btn
+end
+
+local BoxToggle = createButton("Toggle Box ESP")
+BoxToggle.Position = UDim2.new(0, 0, 0, 0)
+
+local ChamsToggle = createButton("Toggle Chams")
+ChamsToggle.Position = UDim2.new(0, 0, 0, 40)
+
+local TracerToggle = createButton("Toggle Tracers")
+TracerToggle.Position = UDim2.new(0, 0, 0, 80)
+
+local SkeletonToggle = createButton("Skeleton (R15)")
+SkeletonToggle.Position = UDim2.new(0, 0, 0, 120)
+
+local HealthBarToggle = createButton("Health Bar")
+HealthBarToggle.Position = UDim2.new(0, 0, 0, 160)
+
+local NameToggle = createButton("Toggle Names")
+NameToggle.Position = UDim2.new(0, 0, 0, 200)
+NameToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+
+local TeamFilterToggle = createButton("Remove Friendly Team ESP")
+TeamFilterToggle.Position = UDim2.new(0, 0, 0, 240)
+TeamFilterToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+
+-- BUTTON FUNCTIONS
+BoxToggle.MouseButton1Click:Connect(function()
+    boxESPEnabled = not boxESPEnabled
+    if boxESPEnabled then
+        BoxToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+    else
+        BoxToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        for _, box in pairs(boxes) do
+            box.Visible = false
+        end
+        boxes = {}
+    end
+end)
+
+ChamsToggle.MouseButton1Click:Connect(function()
+    chamsEnabled = not chamsEnabled
+    if chamsEnabled then
+        ChamsToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                addHighlight(plr)
+            end
+        end
+    else
+        ChamsToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        for plr, highlight in pairs(highlights) do
+            highlight:Destroy()
+        end
+        highlights = {}
+    end
+end)
+
+TracerToggle.MouseButton1Click:Connect(function()
+    tracerEnabled = not tracerEnabled
+    if tracerEnabled then
+        TracerToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                createBeam(plr)
+            end
+        end
+    else
+        TracerToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        for plr, data in pairs(beamTracers) do
+            if data.Beam then
+                data.Beam.Enabled = false
+                data.Beam:Destroy()
+            end
+            if data.Attachment0 then data.Attachment0:Destroy() end
+            if data.Attachment1 then data.Attachment1:Destroy() end
+        end
+        beamTracers = {}
+    end
+end)
+
+SkeletonToggle.MouseButton1Click:Connect(function()
+    skeletonEnabled = not skeletonEnabled
+    if skeletonEnabled then
+        SkeletonToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                createSkeleton(plr)
+            end
+        end
+    else
+        SkeletonToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        for plr, skeletonLines in pairs(skeletons) do
+            for _, line in pairs(skeletonLines) do
+                line.Visible = false
+            end
+        end
+    end
+end)
+
+HealthBarToggle.MouseButton1Click:Connect(function()
+    healthBarEnabled = not healthBarEnabled
+    if healthBarEnabled then
+        HealthBarToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                if not healthBars[plr] then
+                    healthBars[plr] = createHealthBar()
+                end
+            end
+        end
+    else
+        HealthBarToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        for plr, healthBar in pairs(healthBars) do
+            healthBar.background.Visible = false
+            healthBar.health.Visible = false
+        end
+    end
+end)
+
+NameToggle.MouseButton1Click:Connect(function()
+    nameESPEnabled = not nameESPEnabled
+    if nameESPEnabled then
+        NameToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                if not nameLabels[plr] then
+                    nameLabels[plr] = createNameLabel()
+                end
+            end
+        end
+    else
+        NameToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+        for plr, nameLabel in pairs(nameLabels) do
+            nameLabel.Visible = false
+        end
+    end
+end)
+
+TeamFilterToggle.MouseButton1Click:Connect(function()
+    teamFilterEnabled = not teamFilterEnabled
+    
+    if teamFilterEnabled then
+        TeamFilterToggle.BackgroundColor3 = Color3.fromRGB(85, 170, 85)
+    else
+        TeamFilterToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    end
+    
+    if chamsEnabled then
+        for plr, highlight in pairs(highlights) do
+            if not shouldShowPlayer(plr) then
+                removeHighlight(plr)
+            end
+        end
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player and shouldShowPlayer(plr) and plr.Character then
+                addHighlight(plr)
+            end
+        end
+    end
+end)
+
+-- MINIMIZE LOGIC
+local minimized = false
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    ScrollFrame.Visible = not minimized
+    MainFrame.Size = minimized and UDim2.new(0, 250, 0, 28) or UDim2.new(0, 250, 0, 340)
+end)
+
+-- RESPAWN HANDLERS
+player.CharacterAdded:Connect(function()
+    wait(0.5)
+    if tracerEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                createBeam(plr)
+            end
+        end
+    end
+    if skeletonEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                createSkeleton(plr)
+            end
+        end
+    end
+    if healthBarEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                if not healthBars[plr] then
+                    healthBars[plr] = createHealthBar()
+                end
+            end
+        end
+    end
+    if nameESPEnabled then
+        for _, plr in pairs(Players:GetPlayers()) do
+            if plr ~= player then
+                if not nameLabels[plr] then
+                    nameLabels[plr] = createNameLabel()
+                end
+            end
+        end
+    end
+end)
+
+-- PLAYER ADDED HANDLERS
+Players.PlayerAdded:Connect(function(plr)
+    if plr == player then return end
+    plr.CharacterAdded:Connect(function()
+        wait(0.5)
+        if tracerEnabled then
+            createBeam(plr)
+        end
+        if chamsEnabled then
+            addHighlight(plr)
+        end
+        if skeletonEnabled then
+            createSkeleton(plr)
+        end
+        if healthBarEnabled then
+            if not healthBars[plr] then
+                healthBars[plr] = createHealthBar()
+            end
+        end
+        if nameESPEnabled then
+            if not nameLabels[plr] then
+                nameLabels[plr] = createNameLabel()
+            end
+        end
+    end)
+end)
+
+-- PLAYER CLEANUP
+Players.PlayerRemoving:Connect(function(plr)
+    if boxes[plr] then
+        boxes[plr]:Remove()
+        boxes[plr] = nil
+    end
+    
+    removeHighlight(plr)
+    
+    if beamTracers[plr] then
+        local data = beamTracers[plr]
+        if data.Beam then data.Beam:Destroy() end
+        if data.Attachment0 then data.Attachment0:Destroy() end
+        if data.Attachment1 then data.Attachment1:Destroy() end
+        beamTracers[plr] = nil
+    end
+    
+    removeSkeleton(plr)
+    removeHealthBar(plr)
+    removeNameLabel(plr)
+end)
+
+-- EXISTING PLAYERS
+for _, plr in pairs(Players:GetPlayers()) do
+    if plr ~= player then
+        plr.CharacterAdded:Connect(function()
+            wait(0.5)
+            if tracerEnabled then
+                createBeam(plr)
+            end
+            if chamsEnabled then
+                addHighlight(plr)
+            end
+            if skeletonEnabled then
+                createSkeleton(plr)
+            end
+            if healthBarEnabled then
+                if not healthBars[plr] then
+                    healthBars[plr] = createHealthBar()
+                end
+            end
+            if nameESPEnabled then
+                if not nameLabels[plr] then
+                    nameLabels[plr] = createNameLabel()
+                end
+            end
         end)
-   end,
-})
-
-local AutoSellToggle = MainTab:CreateToggle({
-   Name = "Auto Sell All",
-   CurrentValue = false,
-   Flag = "AutoSellAll",
-   Callback = function(Value)
-        autoSellAll = Value
-        if Value then
-            task.spawn(function()
-                while autoSellAll do
-                    local args = {
-                        workspace:WaitForChild("World"):WaitForChild("NPCs"):WaitForChild("Rocky")
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("SellAllItems"):FireServer(unpack(args))
-                    Rayfield:Notify({
-                        Title = "Auto Sell",
-                        Content = "All items sold.",
-                        Duration = 3,
-                        Image = 108632720139222
-                    })
-                    task.wait(autoSellInterval)
-                end
-            end)
-        end
-   end,
-})
-
-local AutoSellSlider = MainTab:CreateSlider({
-   Name = "Auto Sell Interval (s)",
-   Range = {0, 300},
-   Increment = 1,
-   Suffix = "seconds",
-   CurrentValue = 10,
-   Flag = "AutoSellInterval",
-   Callback = function(Value)
-        autoSellInterval = Value
-   end,
-})
-
-local JournalSection = MainTab:CreateSection(" Journal")
-
-local ClaimJournalsButton = MainTab:CreateButton({
-   Name = "Claim All Journals",
-   Callback = function()
-        local scroller = game:GetService("Players").LocalPlayer.PlayerGui.HUD.Frame.Journal.Scroller
-        local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Journal_Claim")
-
-        local count = 0
-
-        for _, item in ipairs(scroller:GetChildren()) do
-            if item:IsA("TextButton") or item:IsA("ImageButton") then
-                remote:FireServer(item.Name)
-                count += 1
-                task.wait(0)
-            end
-        end
-
-        Rayfield:Notify({
-            Title = "Rescued Journals",
-            Content = "Total: " .. count,
-            Duration = 5,
-            Image = 108632720139222
-        })
-   end,
-})
-
-local CharmsSection = MainTab:CreateSection(" Charms")
-
-local charmInternalNames = {
-    "Controlled Glove",
-    "Lucky Bell",
-    "Blue Coil",
-    "Rock Pounder",
-    "Shoulder Bag",
-    "Vision Goggles"
-}
-
-local charmDisplayToInternal = {}
-local charmDisplayNames = {}
-
-local purchaseablesFolder = workspace:WaitForChild("World"):WaitForChild("Interactive"):WaitForChild("Purchaseable")
-
-for _, model in ipairs(purchaseablesFolder:GetChildren()) do
-    if model:IsA("Model") and model:FindFirstChild("PurchasePrompt") then
-        local prompt = model:FindFirstChild("PurchasePrompt")
-        local displayText = prompt and prompt.ObjectText
-        local internalName = model.Name
-
-        if displayText and table.find(charmInternalNames, internalName) then
-            charmDisplayToInternal[displayText] = internalName
-            table.insert(charmDisplayNames, displayText)
-        end
     end
 end
 
-local exceptions = {
-    ["Rock Pounder"] = workspace.World.Map["Cinder Isle"]["Fernhill Forest"]:FindFirstChild("Rock Pounder"),
-    ["Shoulder Bag"] = workspace.World.Map["Cinder Isle"]["Fernhill Forest"]:FindFirstChild("Shoulder Bag")
-}
-
-for internalName, model in pairs(exceptions) do
-    if model and model:FindFirstChild("PurchasePrompt") then
-        local prompt = model.PurchasePrompt
-        local displayText = prompt and prompt.ObjectText
-        if displayText then
-            charmDisplayToInternal[displayText] = internalName
-            table.insert(charmDisplayNames, displayText)
+-- RENDER LOOPS
+boxConnection = RunService.RenderStepped:Connect(function()
+    if boxESPEnabled then
+        updateBoxes()
+    else
+        for _, box in pairs(boxes) do
+            box.Visible = false
         end
-    end
-end
-
-local function buyCharm(charmName)
-    local success, err = pcall(function()
-        ReplicatedStorage:WaitForChild("DialogueRemotes"):WaitForChild("AttemptBuyCharm"):InvokeServer(charmName)
-    end)
-end
-
-local CharmDropdown = MainTab:CreateDropdown({
-   Name = "Buy Charms",
-   Options = charmDisplayNames,
-   CurrentOption = {"Select Charm"},
-   MultipleOptions = false,
-   Flag = "CharmBuy",
-   Callback = function(Option)
-        local displayName = Option[1]
-        selectedCharm = charmDisplayToInternal[displayName]
-        if selectedCharm then
-            buyCharm(selectedCharm)
-        end
-   end,
-})
-
-local BuyAgainButton = MainTab:CreateButton({
-   Name = "Buy Again",
-   Callback = function()
-        if selectedCharm then
-            buyCharm(selectedCharm)
-        else
-            Rayfield:Notify({
-                Title = "Select a Charm",
-                Content = "You must choose a charm first.",
-                Duration = 3,
-                Image = 108632720139222
-            })
-        end
-   end,
-})
-
-local QuestSection = MainTab:CreateSection(" Quests")
-
-local AutoPizzaToggle = MainTab:CreateToggle({
-   Name = "Auto Pizza Delivery Quest",
-   CurrentValue = false,
-   Flag = "AutoPizzaQuest",
-   Callback = function(Value)
-        runningPenguinQuest = Value
-        if Value then
-            task.spawn(function()
-                while runningPenguinQuest do
-                    local args = { "Pizza Penguin" }
-                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("StartInfiniteQuest"):InvokeServer(unpack(args))
-                    task.wait(1)
-
-                    local penguin = workspace:FindFirstChild("Active") and workspace.Active:FindFirstChild("PizzaCustomers") and workspace.Active.PizzaCustomers:FindFirstChild("Valued Customer") and workspace.Active.PizzaCustomers["Valued Customer"]:FindFirstChild("Penguin")
-                    if penguin and penguin:IsA("Model") and penguin.PrimaryPart then
-                        local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
-                        local hrp = char:WaitForChild("HumanoidRootPart")
-                        hrp.CFrame = penguin.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
-                        task.wait(1)
-                        game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Quest_DeliverPizza"):InvokeServer()
-                    end
-                    task.wait(1)
-
-                    game:GetService("ReplicatedStorage"):WaitForChild("DialogueRemotes"):WaitForChild("CompleteInfiniteQuest"):InvokeServer(unpack(args))
-
-                    local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
-                    local hrp = char:WaitForChild("HumanoidRootPart")
-                    hrp.CFrame = CFrame.new(4173, 1193, -4329)
-
-                    task.wait(60)
-                end
-            end)
-        end
-   end,
-})
-
--- Teleport Tab
-local TeleportSection = TeleportTab:CreateSection(" Teleport")
-
-local EnchantmentButton = TeleportTab:CreateButton({
-   Name = "Teleport to Enchantment Altar",
-   Callback = function()
-        local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
-        local hrp = char:WaitForChild("HumanoidRootPart")
-        hrp.CFrame = CFrame.new(4148, -669, 2551)
-   end,
-})
-
-local MeteorButton = TeleportTab:CreateButton({
-   Name = "Teleport to Meteor",
-   Callback = function()
-        local meteor = workspace:FindFirstChild("Active") and workspace.Active:FindFirstChild("ActiveMeteor")
-        if meteor and meteor:IsA("Model") and meteor.PrimaryPart then
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            hrp.CFrame = meteor.PrimaryPart.CFrame + Vector3.new(0, 5, 0)
-            Rayfield:Notify({
-                Title = "Teleport",
-                Content = "Teleported to Meteor.",
-                Duration = 3,
-                Image = 4483362458
-            })
-        else
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Meteor not found.",
-                Duration = 3,
-                Image = 108632720139222
-            })
-        end
-   end,
-})
-
-local MerchantButton = TeleportTab:CreateButton({
-   Name = "Teleport to Traveling Merchant",
-   Callback = function()
-        local merchant = workspace.World.NPCs:FindFirstChild("Merchant Cart")
-        if merchant and merchant:FindFirstChild("Traveling Merchant") and merchant["Traveling Merchant"].PrimaryPart then
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            hrp.CFrame = merchant["Traveling Merchant"].PrimaryPart.CFrame + Vector3.new(0, 5, 0)
-            Rayfield:Notify({
-                Title = "Teleport",
-                Content = "Teleported to Traveling Merchant.",
-                Duration = 3,
-                Image = 108632720139222
-            })
-        else
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Traveling Merchant not found.",
-                Duration = 3,
-                Image = 108632720139222
-            })
-        end
-   end,
-})
-
--- Spawn Teleports
-local TeleportFolder = workspace:WaitForChild("Spawns"):WaitForChild("TeleportSpawns")
-local teleportNames = {}
-local teleportCoords = {}
-
-for _, part in ipairs(TeleportFolder:GetChildren()) do
-    if part:IsA("BasePart") then
-        table.insert(teleportNames, part.Name)
-        teleportCoords[part.Name] = part.Position
-    end
-end
-
-local SpawnDropdown = TeleportTab:CreateDropdown({
-   Name = "Teleport Spawns",
-   Options = teleportNames,
-   CurrentOption = {"Select Spawn"},
-   MultipleOptions = false,
-   Flag = "SpawnTP",
-   Callback = function(Option)
-        local selected = Option[1]
-        local pos = teleportCoords[selected]
-        if pos then
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            hrp.CFrame = CFrame.new(pos)
-        end
-   end,
-})
-
--- Purchasable Teleports
-local itemNames = {}
-local itemPositions = {}
-
-for _, model in ipairs(purchaseablesFolder:GetChildren()) do
-    if model:IsA("Model") and model.PrimaryPart then
-        local prompt = model:FindFirstChild("PurchasePrompt")
-        if prompt and prompt:IsA("ProximityPrompt") then
-            local objectText = prompt.ObjectText
-            if objectText and objectText ~= "" then
-                table.insert(itemNames, objectText)
-                itemPositions[objectText] = model.PrimaryPart.Position
-            end
-        end
-    end
-end
-
-local PurchasableDropdown = TeleportTab:CreateDropdown({
-   Name = "Teleport to Purchasable",
-   Options = itemNames,
-   CurrentOption = {"Select Item"},
-   MultipleOptions = false,
-   Flag = "PurchasableTP",
-   Callback = function(Option)
-        local selected = Option[1]
-        local pos = itemPositions[selected]
-        if pos then
-            local char = game:GetService("Players").LocalPlayer.Character or game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            hrp.CFrame = CFrame.new(pos)
-        end
-   end,
-})
-
--- Boss Teleports
-local bossNames = {
-    "Dire Wolf",
-    "Fuzzball",
-    "Basilisk",
-    "King Crab",
-    "Molten Monstrosity",
-    "Candlelight Phantom",
-    "Giant Spider"
-}
-
-local BossDropdown = TeleportTab:CreateDropdown({
-   Name = "Teleport to Boss",
-   Options = bossNames,
-   CurrentOption = {"Select Boss"},
-   MultipleOptions = false,
-   Flag = "BossTP",
-   Callback = function(Option)
-        local selected = Option[1]
-        local ambience = workspace.World.Zones._Ambience
-        for _, obj in pairs(ambience:GetChildren()) do
-            if obj.Name:sub(1, #selected) == selected then
-                local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    hrp.CFrame = obj.CFrame + Vector3.new(0, 0, 0)
-                end
-                break
-            end
-        end
-   end,
-})
-
-local BossHitToggle = TeleportTab:CreateToggle({
-   Name = "Boss Hit",
-   CurrentValue = false,
-   Flag = "BossHit",
-   Callback = function(Value)
-        runningBossHit = Value
-        if Value then
-            task.spawn(function()
-                while runningBossHit do
-                    local args = {
-                        true
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Dig_Boss_OnHit"):FireServer(unpack(args))
-                    task.wait(0)
-                end
-            end)
-        end
-   end,
-})
-
--- NPC Teleports
-local npcsFolder = workspace:WaitForChild("World"):WaitForChild("NPCs")
-local npcNames = {}
-local npcPositions = {}
-
-for _, npc in ipairs(npcsFolder:GetChildren()) do
-    if npc:IsA("Model") and npc.PrimaryPart then
-        table.insert(npcNames, npc.Name)
-        npcPositions[npc.Name] = npc.PrimaryPart.Position
-    end
-end
-
-local NPCDropdown = TeleportTab:CreateDropdown({
-   Name = "Teleport to NPC",
-   Options = npcNames,
-   CurrentOption = {"Select NPC"},
-   MultipleOptions = false,
-   Flag = "NPCTP",
-   Callback = function(Option)
-        local selected = Option[1]
-        local pos = npcPositions[selected]
-        if pos then
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local hrp = char:WaitForChild("HumanoidRootPart")
-            hrp.CFrame = CFrame.new(pos + Vector3.new(0, 5, 0))
-        end
-   end,
-})
-
--- Movement Tab
-local MovementSection = MovementTab:CreateSection("Movement")
-
-local WalkspeedSlider = MovementTab:CreateSlider({
-   Name = "Walkspeed",
-   Range = {0, 100},
-   Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Flag = "Walkspeed",
-   Callback = function(Value)
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-            LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
-        end
-   end,
-})
-
-local JumpPowerSlider = MovementTab:CreateSlider({
-   Name = "Jump Power",
-   Range = {50, 200},
-   Increment = 1,
-   Suffix = "Power",
-   CurrentValue = 50,
-   Flag = "JumpPower",
-   Callback = function(Value)
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-            LocalPlayer.Character:FindFirstChildOfClass("Humanoid").JumpPower = Value
-        end
-   end,
-})
-
-local GravitySlider = MovementTab:CreateSlider({
-   Name = "Gravity",
-   Range = {0, 999},
-   Increment = 1,
-   Suffix = "Gravity",
-   CurrentValue = workspace.Gravity,
-   Flag = "Gravity",
-   Callback = function(Value)
-        workspace.Gravity = Value
-   end,
-})
-
-local FOVSlider = MovementTab:CreateSlider({
-   Name = "FOV",
-   Range = {20, 120},
-   Increment = 1,
-   Suffix = "FOV",
-   CurrentValue = Camera.FieldOfView,
-   Flag = "FOV",
-   Callback = function(Value)
-        Camera.FieldOfView = Value
-   end,
-})
-
-local InfJumpToggle = MovementTab:CreateToggle({
-   Name = "Infinite Jump",
-   CurrentValue = false,
-   Flag = "InfJump",
-   Callback = function(Value)
-        infJump = Value
-   end,
-})
-
-UserInputService.JumpRequest:Connect(function()
-    if infJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-        LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
     end
 end)
 
-local NoclipToggle = MovementTab:CreateToggle({
-   Name = "Noclip",
-   CurrentValue = false,
-   Flag = "Noclip",
-   Callback = function(Value)
-        noclip = Value
-   end,
-})
+chamsUpdateConnection = RunService.RenderStepped:Connect(function()
+    if chamsEnabled then
+        updateAllHighlights()
+    end
+end)
 
-RunService.Stepped:Connect(function()
-    if noclip and LocalPlayer.Character then
-        for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanCollide = false
+tracerConnection = RunService.RenderStepped:Connect(function()
+    if tracerEnabled then
+        updateTracers()
+    else
+        for _, data in pairs(beamTracers) do
+            if data.Beam then
+                data.Beam.Enabled = false
             end
         end
     end
 end)
 
-local FlySpeedSlider = MovementTab:CreateSlider({
-   Name = "Fly Speed",
-   Range = {10, 999},
-   Increment = 1,
-   Suffix = "Speed",
-   CurrentValue = 50,
-   Flag = "FlySpeed",
-   Callback = function(Value)
-        flySpeed = Value
-   end,
-})
-
-local FlyToggle = MovementTab:CreateToggle({
-   Name = "Fly",
-   CurrentValue = false,
-   Flag = "Fly",
-   Callback = function(Value)
-        fly = Value
-   end,
-})
-
-RunService.RenderStepped:Connect(function()
-    if fly and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        local direction = Vector3.zero
-
-        if UserInputService:IsKeyDown(Enum.KeyCode.W) then direction += Camera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.S) then direction -= Camera.CFrame.LookVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.A) then direction -= Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.D) then direction += Camera.CFrame.RightVector end
-        if UserInputService:IsKeyDown(Enum.KeyCode.E) then direction += Vector3.new(0, 1, 0) end
-        if UserInputService:IsKeyDown(Enum.KeyCode.Q) then direction -= Vector3.new(0, 1, 0) end
-
-        hrp.Velocity = direction * flySpeed
+skeletonConnection = RunService.RenderStepped:Connect(function()
+    if skeletonEnabled then
+        updateSkeletons()
+    else
+        for _, skeletonLines in pairs(skeletons) do
+            for _, line in pairs(skeletonLines) do
+                line.Visible = false
+            end
+        end
     end
 end)
 
-local ResetButton = MovementTab:CreateButton({
-   Name = "Reset Player",
-   Callback = function()
-        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
-            local h = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            h.WalkSpeed = 16
-            h.JumpPower = 50
-            workspace.Gravity = defaultGravity
-            Camera.FieldOfView = defaultFOV
+healthBarConnection = RunService.RenderStepped:Connect(function()
+    if healthBarEnabled then
+        updateHealthBars()
+    else
+        for _, healthBar in pairs(healthBars) do
+            healthBar.background.Visible = false
+            healthBar.health.Visible = false
         end
-   end,
-})
-
--- Player Teleport
-local PlayerSection = MovementTab:CreateSection("Player Teleport")
-
-local function getPlayers()
-    local t = {}
-    for _,p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer then table.insert(t, p.Name) end
     end
-    return t
-end
+end)
 
-local PlayerDropdown = MovementTab:CreateDropdown({
-   Name = "Teleport to Player",
-   Options = getPlayers(),
-   CurrentOption = {"Select Player"},
-   MultipleOptions = false,
-   Flag = "PlayerTP",
-   Callback = function(Option)
-        local v = Option[1]
-        local target = Players:FindFirstChild(v)
-        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            char:WaitForChild("HumanoidRootPart").CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-            Rayfield:Notify({
-                Title = "Teleport",
-                Content = "Teleported to " .. v,
-                Duration = 3,
-                Image = 108632720139222
-            })
-        else
-            Rayfield:Notify({
-                Title = "Error",
-                Content = "Player not found.",
-                Duration = 3,
-                Image = 108632720139222
-            })
+nameESPConnection = RunService.RenderStepped:Connect(function()
+    if nameESPEnabled then
+        updateNameESP()
+    else
+        for _, nameLabel in pairs(nameLabels) do
+            nameLabel.Visible = false
         end
-   end,
-})
-
-local RefreshPlayersButton = MovementTab:CreateButton({
-   Name = "Refresh Player List",
-   Callback = function()
-        PlayerDropdown:Refresh(getPlayers())
-        Rayfield:Notify({
-            Title = "Player List",
-            Content = "Player list has been updated.",
-            Duration = 2,
-            Image = 108632720139222
-        })
-   end,
-})
-
-Rayfield:Notify({
-    Title = "Saturn Hub",
-    Content = "DIG loaded successfully!",
-    Duration = 5,
-    Image = 108632720139222
-})
+    end
+end)
