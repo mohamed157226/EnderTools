@@ -4,10 +4,8 @@ local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("User InputService")
 local Workspace = game:GetService("Workspace")
-local HttpService = game:GetService("HttpService")
-local TeleportService = game:GetService("TeleportService")
 
--- تحميل مكتبة Rayfield
+-- تحميل مكتبة Rayfield (يمكنك إضافة كود Aimbot لاحقاً)
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 -- المتغيرات الأساسية للشخصية والكاميرا
@@ -22,9 +20,7 @@ end)
 local camera = Workspace.CurrentCamera
 local mouse = LocalPlayer:GetMouse()
 
--- ============================
--- واجهة GUI بسيطة (xcv hub)
--- ============================
+-- === واجهة GUI ===
 local screenGui = Instance.new("ScreenGui", game.CoreGui)
 screenGui.Name = "SpeedAndJumpGUI"
 
@@ -87,7 +83,6 @@ jumpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 jumpButton.Font = Enum.Font.GothamBold
 jumpButton.BorderSizePixel = 0
 
--- NoClip Button
 local NoClipBtn = Instance.new("TextButton", frame)
 NoClipBtn.Size = UDim2.new(0, 250, 0, 30)
 NoClipBtn.Position = UDim2.new(0, 25, 0, 310)
@@ -97,7 +92,6 @@ NoClipBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 NoClipBtn.Font = Enum.Font.SourceSansBold
 NoClipBtn.TextSize = 16
 
--- Close Button
 local CloseBtn = Instance.new("TextButton", frame)
 CloseBtn.Size = UDim2.new(0, 250, 0, 30)
 CloseBtn.Position = UDim2.new(0, 25, 0, 350)
@@ -130,7 +124,7 @@ frame.InputChanged:Connect(function(input)
     end
 end)
 
-User InputService.InputChanged:Connect(function(input)
+UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - dragStart
         frame.Position = UDim2.new(
@@ -174,7 +168,6 @@ jumpButton.MouseButton1Click:Connect(updateJumpPower)
 -- NoClip متغير وحالة
 local noclipEnabled = false
 
--- وظيفة NoClip
 local function toggleNoClip()
     noclipEnabled = not noclipEnabled
     NoClipBtn.Text = noclipEnabled and "NoClip: ON" or "NoClip: OFF"
@@ -182,7 +175,6 @@ end
 
 NoClipBtn.MouseButton1Click:Connect(toggleNoClip)
 
--- تنفيذ NoClip في كل إطار
 RunService.Stepped:Connect(function()
     if noclipEnabled and hrp then
         for _, part in pairs(char:GetChildren()) do
@@ -199,21 +191,11 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--- زر إغلاق الواجهة
 CloseBtn.MouseButton1Click:Connect(function()
     screenGui:Destroy()
 end)
 
--- ============================
--- نظام Aimbot و Anti-Aim و Misc (Rayfield)
--- ============================
-
--- (يمكنك دمج كود الـ Aimbot والـ Anti-Aim والمميزات الأخرى من الكود السابق هنا إذا أردت)
-
--- ============================
--- نظام ESP باستخدام Drawing
--- ============================
-
+-- ESP System
 local ESPs = {}
 
 local function createESP(plr)
@@ -255,7 +237,6 @@ Players.PlayerRemoving:Connect(function(plr)
     end
 end)
 
--- تحديث ESP في كل إطار
 RunService.RenderStepped:Connect(function()
     for plr, espData in pairs(ESPs) do
         local character = plr.Character
@@ -263,12 +244,10 @@ RunService.RenderStepped:Connect(function()
         if hrp and espData.Box and espData.Line then
             local pos, onScreen = camera:WorldToViewportPoint(hrp.Position)
             if onScreen then
-                local size = Vector3.new(4, 6, 1) -- حجم الصندوق (يمكن تعديله)
-                local topLeft = Vector2.new(pos.X - 50, pos.Y - 75)
-                local bottomRight = Vector2.new(pos.X + 50, pos.Y + 75)
-
+                local size = Vector2.new(50, 75)
+                local topLeft = Vector2.new(pos.X - size.X/2, pos.Y - size.Y/2)
                 espData.Box.Position = topLeft
-                espData.Box.Size = Vector2.new(bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y)
+                espData.Box.Size = size
                 espData.Box.Visible = true
 
                 espData.Line.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
