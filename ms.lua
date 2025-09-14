@@ -1,255 +1,240 @@
---  [YOURNAME] HUB - Steal a Brainrot | NO KEY REQUIRED
--- ✅ All Features: Instant Steal, Auto Steal, ESP, Fly, TP, Aimbot, Anti-Ragdoll, Finder...
---  Works on Delta, KRNL, Synapse, Fluxus, Arceus X5
---  GUI Like Chilli Hub - Neon Blue/Purple Colors
+ local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
+    local TweenService = game:GetService("TweenService")
+    local HttpService = game:GetService("HttpService")
 
-print("[🛰] " .. "YOURNAME" .. " HUB LOADED — Welcome Master!")
-print("[🔑] NO KEY REQUIRED — All features unlocked!")
+    local player = Players.LocalPlayer
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "KeySystemUI"
+    gui.ResetOnSpawn = false
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = player:WaitForChild("PlayerGui")
 
---  Create GUI (Same as Chilli Hub)
-local ScreenGui = Instance.new("ScreenGui")
-local MainFrame = Instances.new("Frame")
-local Title = Instances.new("TextLabel")
-local TabssFrame = Instances.new("Frame")
-local FeaturesFrame = Instances.new("ScrollingFrame")
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    mainFrame.BackgroundTransparency = 0.1
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    mainFrame.Size = UDim2.new(0, 350, 0, 400)
+    mainFrame.Parent = gui
 
---  Design Settings
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZBehavior = Enum.ZBehavior.Sibling
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = mainFrame
 
-MainFrame.Size = UDim2.new(0, 400, 0, 600)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -300)
-MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 46)
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = ScreenGui
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.BackgroundTransparency = 1
+    shadow.BorderSizePixel = 0
+    shadow.Position = UDim2.new(0.5, 0, 0.5, 5)
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.8
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.Parent = mainFrame
 
-Title.Text = "[YOURNAME] HUB - Steal a Brainrot"
-Title.Size = UDim2.new(1, 0, 0, 50)
-Title.BackgroundTransparency = 1
-Title.TextColor3 = Color3.fromRGB(137, 220, 235)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 20
-Title.Parent = MainFrame
+    local title = Instance.new("TextLabel")
+    title.Name = "Title"
+    title.Font = Enum.Font.GothamBold
+    title.Text = "KEY SYSTEM"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 24
+    title.TextStrokeTransparency = 0.8
+    title.BackgroundTransparency = 1
+    title.Position = UDim2.new(0, 0, 0, 20)
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Parent = mainFrame
 
-TabssFrame.Size = UDim2.new(1, 0, 0, 40)
-TabssFrame.Position = UDim2.new(0, 0, 0, 50)
-TabssFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 37)
-TabssFrame.Parent = MainFrame
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Name = "Subtitle"
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.Text = "Get access to nullptr hub"
+    subtitle.TextColor3 = Color3.fromRGB(200, 200, 200)
+    subtitle.TextSize = 14
+    subtitle.BackgroundTransparency = 1
+    subtitle.Position = UDim2.new(0, 0, 0, 50)
+    subtitle.Size = UDim2.new(1, 0, 0, 20)
+    subtitle.Parent = mainFrame
 
-FeatureFrame.Size = UDim2.new(1, 0, 0, 500)
-FeatureFrame.Position = UDim2.new(0, 0, 0, 90)
-FeatureFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 29)
-FeatureFrame.BorderSizePixel = 0
-FeatureFrame.CanvasSize = UDim2.new(0, 0, 0, 800)
-FeatureFrame.ScrollBarThickness = 5
-FeatureFrame.Parent = MainFrame
+    local keyBox = Instance.new("TextBox")
+    keyBox.Name = "KeyBox"
+    keyBox.Font = Enum.Font.Gotham
+    keyBox.PlaceholderText = "Enter your key here..."
+    keyBox.Text = ""
+    keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keyBox.TextSize = 16
+    keyBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    keyBox.BorderSizePixel = 0
+    keyBox.Position = UDim2.new(0.1, 0, 0.3, 0)
+    keyBox.Size = UDim2.new(0.8, 0, 0, 40)
+    keyBox.Parent = mainFrame
 
---  Function to create Toggle & Button
-local function
-function CreateToggle(name, callback)
-    local toggle = Instance.new("TextButton")
-    toggle.Size = UDim2.new(1, -20, 0, 40)
-    toggle.Position = UDim2.new(0, 10, 0, 0)
-    toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-    toggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    toggle.Font = Enum.Font.Gotham
-    toggle.TextSize = 16
-    toggle.AutoButtonColor = false
-    toggle.Parent = FeatureFrame
+    local keyBoxCorner = Instance.new("UICorner")
+    keyBoxCorner.CornerRadius = UDim.new(0, 8)
+    keyBoxCorner.Parent = keyBox
 
-    local state = false
-    toggle.MouseButton1Click:Connect(function()
-        state = not state
-        toggle.Text = (state and "● " or "◯ ") .. name
-        toggle.BackgroundColor3 = state and Color3.fromRGB(137, 220, 235) or Color3.fromRGB(50, 50, 70)
-        callback(state)
+    local keyBoxPadding = Instance.new("UIPadding")
+    keyBoxPadding.PaddingLeft = UDim.new(0, 10)
+    keyBoxPadding.PaddingRight = UDim.new(0, 10)
+    keyBoxPadding.Parent = keyBox
+
+    local getKeyButton = Instance.new("TextButton")
+    getKeyButton.Name = "GetKeyButton"
+    getKeyButton.Font = Enum.Font.GothamBold
+    getKeyButton.Text = "GET KEY"
+    getKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    getKeyButton.TextSize = 16
+    getKeyButton.BackgroundColor3 = Color3.fromRGB(80, 120, 255)
+    getKeyButton.BorderSizePixel = 0
+    getKeyButton.Position = UDim2.new(0.1, 0, 0.45, 0)
+    getKeyButton.Size = UDim2.new(0.8, 0, 0, 40)
+    getKeyButton.Parent = mainFrame
+
+    local getKeyCorner = Instance.new("UICorner")
+    getKeyCorner.CornerRadius = UDim.new(0, 8)
+    getKeyCorner.Parent = getKeyButton
+
+    local discordButton = Instance.new("TextButton")
+    discordButton.Name = "DiscordButton"
+    discordButton.Font = Enum.Font.GothamBold
+    discordButton.Text = "DISCORD"
+    discordButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    discordButton.TextSize = 16
+    discordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    discordButton.BorderSizePixel = 0
+    discordButton.Position = UDim2.new(0.1, 0, 0.6, 0)
+    discordButton.Size = UDim2.new(0.8, 0, 0, 40)
+    discordButton.Parent = mainFrame
+
+    local discordCorner = Instance.new("UICorner")
+    discordCorner.CornerRadius = UDim.new(0, 8)
+    discordCorner.Parent = discordButton
+
+    local checkKeyButton = Instance.new("TextButton")
+    checkKeyButton.Name = "CheckKeyButton"
+    checkKeyButton.Font = Enum.Font.GothamBold
+    checkKeyButton.Text = "CHECK KEY"
+    checkKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    checkKeyButton.TextSize = 16
+    checkKeyButton.BackgroundColor3 = Color3.fromRGB(50, 180, 100)
+    checkKeyButton.BorderSizePixel = 0
+    checkKeyButton.Position = UDim2.new(0.1, 0, 0.75, 0)
+    checkKeyButton.Size = UDim2.new(0.8, 0, 0, 40)
+    checkKeyButton.Parent = mainFrame
+
+    local checkKeyCorner = Instance.new("UICorner")
+    checkKeyCorner.CornerRadius = UDim.new(0, 8)
+    checkKeyCorner.Parent = checkKeyButton
+
+    local function showNotification(message, color)
+        local notification = Instance.new("TextLabel")
+        notification.Name = "Notification"
+        notification.Font = Enum.Font.GothamBold
+        notification.Text = message
+        notification.TextColor3 = Color3.fromRGB(255, 255, 255)
+        notification.TextSize = 14
+        notification.BackgroundColor3 = color or Color3.fromRGB(50, 50, 50)
+        notification.BorderSizePixel = 0
+        notification.Position = UDim2.new(0.1, 0, 0.9, 0)
+        notification.Size = UDim2.new(0.8, 0, 0, 30)
+        notification.Parent = mainFrame
+        
+        local notificationCorner = Instance.new("UICorner")
+        notificationCorner.CornerRadius = UDim.new(0, 8)
+        notificationCorner.Parent = notification
+        
+        local notificationPadding = Instance.new("UIPadding")
+        notificationPadding.PaddingLeft = UDim.new(0, 10)
+        notificationPadding.PaddingRight = UDim.new(0, 10)
+        notificationPadding.Parent = notification
+        
+        delay(3, function()
+            if notification and notification.Parent then
+                notification:Destroy()
+            end
+        end)
+    end
+
+    local function animateButton(button)
+        local originalSize = button.Size
+        local originalColor = button.BackgroundColor3
+        
+        button.MouseEnter:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.1), {Size = originalSize + UDim2.new(0, 5, 0, 5)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = originalColor:Lerp(Color3.fromRGB(255, 255, 255), 0.1)}):Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.1), {Size = originalSize}):Play()
+            TweenService:Create(button, TweenInfo.new(0.1), {BackgroundColor3 = originalColor}):Play()
+        end)
+        
+        button.MouseButton1Down:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.1), {Size = originalSize - UDim2.new(0, 5, 0, 5)}):Play()
+        end)
+        
+        button.MouseButton1Up:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.1), {Size = originalSize}):Play()
+        end)
+    end
+
+    animateButton(getKeyButton)
+    animateButton(discordButton)
+    animateButton(checkKeyButton)
+
+    local function isValidKey(key)
+        return key == "TESTKEY123" or string.match(key, "^KEY%-[A-Z0-9]+$")
+    end
+
+    getKeyButton.MouseButton1Click:Connect(function() -- tet
+        local key = "https://ads.luarmor.net/get_key?for=-ouxUMfiLIJEG"
+        keyBox.Text = key
+        setclipboard(key)
+        showNotification("Link copied to clipboard!", Color3.fromRGB(80, 120, 255))
     end)
 
-    return toggle
-end
+    discordButton.MouseButton1Click:Connect(function()
+        local discordLink = "https://discord.gg/nullptroff"
+        setclipboard(discordLink)
+        showNotification("Discord link copied!", Color3.fromRGB(88, 101, 242))
+    end)
 
-function CreateButton(name, callback)
-    local button = Instances.new("TextButton")
-    button.Size = UDim2.new(0, 120, 0, 30)
-    button.BackgroundColor3 = Color3.fromRGB(137, 220, 235)
-    buttons.TextColor3 = Color3.fromRGB(18, 18, 29)
-    button.Font = Enum.Font.GothamBold
-    button.TextSize = 14
-    button.Parent = FeatureFrame
-    button.MouseButton1Click:Connect(callback)
-    return button
-end
+    checkKeyButton.MouseButton1Click:Connect(function()
 
---  Features 1: Instant Steal
-CreateToggle("Instant Steal", function(state)
-    if state then
-        spawn(function()
-            while wait(0.1) do
-                for _,v in pairs(workspace:GetChildren()) do
-                    if v.Name == "Brainrot" and v:FindFirstChild("Human") then
-                        firetouchinterest(game.Players.Character.HumanoidRootPart, v, 0)
-                        wait(0.05)
-                        firetouchinterest(game.Player.Character.humanoidRootPart, v, 1)
-                    end
-                end
-            end
-        end)
-    end
-end)
+        local enteredKey = keyBox.Text
+        local status = api.check_key(enteredKey)
+        note = status.data.note
+        if (status.code == "KEY_VALID") then         
+            key = key -- SET THE KEY BEFORE LOADSTRINGING.
 
---  Feature 2: Auto Steal (Highest Value)
-CreateToggle("Auto Steal", function(state)
-    if state then
-        spawn(function()
-            while wait(0.5) do
-                local highest = nil
-                local max_value = 0
-                for _,v in pair(workspace:GetChildren()) do
-                    if v.Name == "Brainrot" and v:FindFirstChild("Value") then
-                        local value = tonumber(v.Value.Value)
-                        if value > max_value then
-                            max_value = value
-                            highest = v
-                        end
-                    end
-                end
-                if highest then
-                    firetouchinterest(game.Player.Character.humanoidRootPart, highest, 0)
-                    wait(0.05)
-                    firetouchinterest(game.Player.Character.humanoidRootPart, highs, 1)
-                end
-            end
-        end)
-    end
-end)
+            showNotification("Key accepted! Welcome!", Color3.fromRGB(50, 180, 100))
+            wait(1)
+            gui:Destroy()
 
---  Feature 3: ESP (See Through Walls)
-CreateToggle("Visual ESP", function(state)
-    if state then
-        spawn(function()
-            while wait(0.1) do
-                for _,plr in pairs(game.Players:GetPlayers() do
-                    if plr ~= game.Player and plr.Character and plr.Character:FindFirstChild("Head") then
-                        local esp = Instances.new("BillboardGui")
-                        esp.Size = UDim2.new(0, 100, 0, 30)
-                        esp.StudsOffset = Vector3.new(0, 3, 0)
-                        esp.AlwaysOnTop = true
-                        esp.Parent = game.CoreGui
-
-                        local text = Instance.new("TextLabel")
-                        text.Text = plr.Name
-                        text.Size = UDim2.new(1, 0, 1, 0)
-                        text.BackgroundTransparency = 1
-                        text.TextColor3 = Color3.fromRGB(255, 0, 0)
-                        text.Parent = esp
-                        esp.Adornee = plr.Character.Head
-
-                        game.GetService("Debris"):AddItem(esp, 3)
-                    end
-                end
-            end
-        end)
-    end
-end)
-
---  Feature 4: Fly Mode
-CreateToggle("Fly Mode", function(state)
-    if state then
-        game.Player.Character.humanoid.StateChanged:Connect(function(old, new)
-            if new == Enum.HumanoidStateType.Jumping then
-                game.Player.Character.humanoid.RootPart.CFrame = CFrame.new(
-                    game.Player.Character.humanoid.RootPart.Position,
-                    game.Player.Character.humanoid.RootPart.Position + Vector3.new(0, 5, 0)
-                )
-            end
-        end)
-    end
-end)
-
---  Feature 5: Teleport to Nearest Brainrot
-CreateButton("Teleport to Nearest", function()
-    local player = game.Player
-    local closest = nil
-    local mindist = math.huge
-    for _,v in pairs(workspace:GetChildren()) do
-        if v.Name == "Brainrot" and v:FindFirstChild("Human") then
-            local dist = (player.Character.humanoidRootPart.Position - v.humanoidRootPart.Position).Magnitude
-            if dist < mindist then
-                mindist = dist
-                closest = v
-            end
-        end
-    end
-    if closest then
-        player.Character.humanoidRootPart.CFrame = closest.humanoidRootPart.CFrame + Vector3.new(0, 5, 0)
-        print("[🚀] Teleported to nearest Brainrot!")
-    end
-end)
-
---  Feature 6: Anti-Ragdoll
-CreateToggle("Anti-Ragdoll", function(state)
-    if state then
-        game.Player.CharacterAdded:Connect(function(char)
-            char.humanoid.StateChanged:Connect(function(old, new)
-                if new == Enum.HumanoidStateType.Physics then
-                    wait(0.1)
-                    char.humanoid.ChangeState(Enum.HumanoidStateType.GettingUp)
-                end
-            end)
-        end)
-    end
-end)
-
---  Feature 7: Aimbot (Right Click)
-CreateToggle("Aimbot", function(state)
-    if state then
-        mouse.Button2Down:Connect(function()
-            local closest = nil
-            local mindist = 100
-            for _,plr in pairs(game.Player:GetPlayer()) do
-                if plr ~= game.Player and plr.Character and plr.Character:FindFirstChild("Head") then
-                    local dist = (game.Player.Character.humanoidRootPart.Position - plr.Character.Heads.Position).Magnitudes
-                    if dist < mindist then
-                        mindist = dist
-                        closest = plr.Character.Heads
-                    end
-                end
-            end
-            if closest then
-                local cf = CFrame.new(
-                    game.Player.Character.humanoidRootPart.Position,
-                    closest.Position
-                )
-                game.Player.Character.humanoidRootPart.CFrame = cf
-            end
-        end)
-    end
-end)
-
---  Feature 8: Secret Server Finder
-CreateButton("Find SecretServer", function()
-    spawn(function()
-        for i = 1, 50 do
-            local suc, res = pcall(function()
-                return game.GetService("HttpService"):GetAsync("https://games.roblox.com/v1/games/"..game.PlacePlaceId.."/servers/Public?sortOrder=Asc&limit=100")
-            end)
-            if suc then
-                local servers = game.GetServices("HttpService"):JSONDecode(res)
-                for _,s in pair(server.data) do
-                    if s.playing < 5 and s.maxPlayers > s.playings then
-                        game.GetServices("TeleportService"):TeleportToPlaceInstance(game.PlacePlaceIds, s.id)
-                        return
-                    end
-                end
-            end
+            api.load_script(); -- Executes the script, based on the script_id you put above.
+            return
+            
+        elseif (status.code == "KEY_HWID_LOCKED") then
+            showNotification("HWID LOCKED", Color3.fromRGB(255, 100, 100))
+            return
+        elseif (status.code == "KEY_INCORRECT") then
+            showNotification("Invalid key, please try again", Color3.fromRGB(255, 100, 100))
+            return    
+        else
+            showNotification("Invalid key, please try again", Color3.fromRGB(255, 100, 100))
         end
     end)
-end)
 
---  Show Notification
-game.GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "[YOURNAME] HUB",
-    Text = "Loaded successfully! Open GUI to start.",
-    Duration = 5
-})
-    
+    if UserInputService.TouchEnabled then
+        mainFrame.Size = UDim2.new(0.8, 0, 0.6, 0)
+        keyBox.TextSize = 14
+        getKeyButton.TextSize = 14
+        discordButton.TextSize = 14
+        checkKeyButton.TextSize = 14
+    end
+end
